@@ -2,15 +2,24 @@
 
 Executed on 2026-09-10, Linux x86_64. Host Python 3.14.3; runtime and development
 containers Python 3.12.12. These are observations from real execution, not
-expected example output. Remote CI status is reported separately by GitHub Actions.
+expected example output.
+
+The first published commit fe9d105 passed all three remote jobs in
+[GitHub Actions run 34526441474](https://github.com/Miguell-J/mcp-stack/actions/runs/34526441474):
+quality on Python 3.12 (32 s), quality on Python 3.14 (36 s), and integration
+(3 min 39 s), including real Docker builds, external E2E, stop/restart fault
+injection, the dev runner and the template build. The workflow Actions were then
+updated to published Node 24-compatible major versions to remove deprecation
+annotations. The latest run on main is authoritative for subsequent commits.
 
 ## Results
 
 | Check | Actual result |
 | --- | --- |
-| Full local `python -m pytest -q` | 64 passed, 1 third-party deprecation warning, 34.80 s |
+| Full local `python -m pytest -q` | 64 passed, 1 third-party deprecation warning, 34.32 s |
+| Focused `make test` | 51 unit/contract tests passed, 0.89 s |
 | Thin adapter `make test-template` | 1 passed, 0.51 s |
-| Host SDK client against Docker stack | 6 E2E passed, 6.19 s |
+| Host SDK client against Docker stack | 6 E2E passed, 6.44 s |
 | Python 3.12 SDK client in dev container | 6 E2E passed, 6.59 s |
 | Ruff check / format check | Passed |
 | Strict mypy | No issues in 26 source files |
@@ -20,6 +29,7 @@ expected example output. Remote CI status is reported separately by GitHub Actio
 | Docker stop/start fault check | Health 503 + infrastructure isError, then health 200 + successful call |
 | Optional OTel Collector | Started; real OTLP trace batches received, including 45, 51 and 17 spans |
 | Codex configuration generator | Endpoint, add command, list command and TOML printed without editing user config |
+| Bootstrap rerun / shutdown / fresh startup | All passed; dependency stayed clean and pinned |
 
 The warning is Starlette's use of the deprecated AnyIO BlockingPortal alias,
 not use of a deprecated MCP API by this project. A sandboxed in-process SDK
