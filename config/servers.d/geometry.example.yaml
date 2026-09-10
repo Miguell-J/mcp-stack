@@ -1,0 +1,11 @@
+id: crr-mcp
+enabled: false
+display_name: CRR Geometry
+namespace: geometry
+transport:
+  type: streamable_http
+  url: http://crr-mcp:8080/mcp
+health:
+  url: http://crr-mcp:8080/health
+contract: {family: scientific-result, version: 1}
+metadata: {library: crr}

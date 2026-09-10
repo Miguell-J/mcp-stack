@@ -1,0 +1,15 @@
+version: 1
+protocol: '2026-07-28'
+mcp_one:
+  url: https://github.com/Miguell-J/mcp-one.git
+  # Last audited, compilable Phase 4 commit. See docs/mcp-one-integration.md.
+  ref: dafd1e1ed681a05f2dc7ea0c0e7ab796036c9689
+gateway:
+  bind: 127.0.0.1
+  port: 8765
+  one_url: http://mcp-one:8000
+  bridge_url: http://legacy-bridge:8080
+  request_timeout_seconds: 15
+  catalog_ttl_seconds: 0
+  circuit_breaker_failures: 3
+  circuit_breaker_reset_seconds: 5

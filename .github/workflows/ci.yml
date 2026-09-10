@@ -1,0 +1,57 @@
+name: Scientific MCP stack
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        python: ['3.12', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-${{ runner.os }}-${{ matrix.python }}-${{ hashFiles('uv.lock') }}
+      - run: make bootstrap
+      - run: make lint
+      - run: make test test-template
+      - run: make render contract-docs
+      - run: git diff --exit-code -- config/schemas docs/contracts/example-v1.md
+      - run: docker compose --profile core --profile dev --profile observability config --quiet
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: .uv-cache
+          key: uv-${{ runner.os }}-3.12-${{ hashFiles('uv.lock') }}
+      - uses: docker/setup-buildx-action@v3
+      - run: make bootstrap
+      - run: make test-integration test-e2e
+      - run: make up
+      - run: make health tools
+      - run: STACK_ENDPOINT=http://127.0.0.1:8765/mcp make test-e2e
+      - run: make fault-check
+      - run: docker compose --profile core --profile dev build test-runner
+      - run: docker compose --profile core --profile dev run --rm test-runner
+      - run: docker build -f templates/python_scientific_mcp/Dockerfile -t example-scientific-mcp:0.1.0 .
+      - if: failure()
+        run: docker compose --profile core logs --no-color --tail=150
+      - if: always()
+        run: make down

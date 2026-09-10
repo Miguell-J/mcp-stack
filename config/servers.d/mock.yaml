@@ -1,0 +1,21 @@
+id: mock-scientific-mcp
+enabled: true
+display_name: Scientific contract fixture
+namespace: demo
+transport:
+  type: streamable_http
+  url: http://mock-scientific-mcp:8080/mcp
+  timeout_seconds: 5
+health:
+  url: http://mock-scientific-mcp:8080/health
+  timeout_seconds: 2
+contract:
+  family: scientific-result
+  version: 1
+metadata:
+  library: mock-fixture
+container:
+  image: mcp-stack:0.1.0
+  command: [uvicorn, services.mock_scientific_mcp.app:create_app, --factory, --host, 0.0.0.0, --port, '8080', --no-access-log]
+  port: 8080
+  profile: core

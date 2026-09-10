@@ -1,0 +1,355 @@
+{
+  "$defs": {
+    "Container": {
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "default": "mcp-stack:0.1.0",
+          "title": "Image",
+          "type": "string"
+        },
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Command",
+          "type": "array"
+        },
+        "port": {
+          "default": 8080,
+          "maximum": 65535,
+          "minimum": 1024,
+          "title": "Port",
+          "type": "integer"
+        },
+        "profile": {
+          "default": "core",
+          "enum": [
+            "core",
+            "dev"
+          ],
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "title": "Container",
+      "type": "object"
+    },
+    "Contract": {
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "const": "scientific-result",
+          "default": "scientific-result",
+          "title": "Family",
+          "type": "string"
+        },
+        "version": {
+          "const": 1,
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "title": "Contract",
+      "type": "object"
+    },
+    "Dependency": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "const": "https://github.com/Miguell-J/mcp-one.git",
+          "title": "Url",
+          "type": "string"
+        },
+        "ref": {
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        }
+      },
+      "required": [
+        "url",
+        "ref"
+      ],
+      "title": "Dependency",
+      "type": "object"
+    },
+    "Gateway": {
+      "additionalProperties": false,
+      "properties": {
+        "bind": {
+          "default": "127.0.0.1",
+          "enum": [
+            "127.0.0.1",
+            "::1"
+          ],
+          "title": "Bind",
+          "type": "string"
+        },
+        "port": {
+          "default": 8765,
+          "maximum": 65535,
+          "minimum": 1024,
+          "title": "Port",
+          "type": "integer"
+        },
+        "one_url": {
+          "default": "http://mcp-one:8000",
+          "title": "One Url",
+          "type": "string"
+        },
+        "bridge_url": {
+          "default": "http://legacy-bridge:8080",
+          "title": "Bridge Url",
+          "type": "string"
+        },
+        "request_timeout_seconds": {
+          "default": 15,
+          "maximum": 180,
+          "minimum": 1,
+          "title": "Request Timeout Seconds",
+          "type": "number"
+        },
+        "max_payload_bytes": {
+          "default": 1048576,
+          "maximum": 4194304,
+          "minimum": 1024,
+          "title": "Max Payload Bytes",
+          "type": "integer"
+        },
+        "max_schema_bytes": {
+          "default": 131072,
+          "maximum": 1048576,
+          "minimum": 1024,
+          "title": "Max Schema Bytes",
+          "type": "integer"
+        },
+        "max_tools": {
+          "default": 256,
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Tools",
+          "type": "integer"
+        },
+        "max_schema_depth": {
+          "default": 32,
+          "maximum": 64,
+          "minimum": 4,
+          "title": "Max Schema Depth",
+          "type": "integer"
+        },
+        "catalog_ttl_seconds": {
+          "default": 0,
+          "maximum": 60,
+          "minimum": 0,
+          "title": "Catalog Ttl Seconds",
+          "type": "integer"
+        },
+        "health_retry_attempts": {
+          "default": 1,
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Health Retry Attempts",
+          "type": "integer"
+        },
+        "circuit_breaker_failures": {
+          "default": 3,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Circuit Breaker Failures",
+          "type": "integer"
+        },
+        "circuit_breaker_reset_seconds": {
+          "default": 5,
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Circuit Breaker Reset Seconds",
+          "type": "integer"
+        },
+        "rate_limit_per_minute": {
+          "default": 600,
+          "maximum": 10000,
+          "minimum": 30,
+          "title": "Rate Limit Per Minute",
+          "type": "integer"
+        }
+      },
+      "title": "Gateway",
+      "type": "object"
+    },
+    "Health": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 2,
+          "maximum": 30,
+          "minimum": 0.1,
+          "title": "Timeout Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "title": "Health",
+      "type": "object"
+    },
+    "ServerManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,39}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "namespace": {
+          "pattern": "^[a-z][a-z0-9_-]{0,39}$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "transport": {
+          "$ref": "#/$defs/Transport"
+        },
+        "health": {
+          "$ref": "#/$defs/Health"
+        },
+        "contract": {
+          "$ref": "#/$defs/Contract"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "container": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Container"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "namespace",
+        "transport",
+        "health"
+      ],
+      "title": "ServerManifest",
+      "type": "object"
+    },
+    "Transport": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "streamable_http",
+          "default": "streamable_http",
+          "title": "Type",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 5,
+          "maximum": 120,
+          "minimum": 0.1,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "token_env": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z][A-Z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Token Env"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "title": "Transport",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "protocol": {
+      "const": "2026-07-28",
+      "default": "2026-07-28",
+      "title": "Protocol",
+      "type": "string"
+    },
+    "mcp_one": {
+      "$ref": "#/$defs/Dependency"
+    },
+    "gateway": {
+      "$ref": "#/$defs/Gateway"
+    },
+    "servers": {
+      "items": {
+        "$ref": "#/$defs/ServerManifest"
+      },
+      "maxItems": 100,
+      "title": "Servers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mcp_one"
+  ],
+  "title": "StackConfig",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "GENERATED FILE - DO NOT EDIT. Expanded stack + servers.d model; make render."
+}

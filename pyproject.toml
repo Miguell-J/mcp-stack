@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-stack"
+version = "0.1.0"
+description = "Composition and operation of a local scientific MCP stack"
+requires-python = ">=3.12,<3.15"
+license = "MIT"
+dependencies = [
+  "scientific-mcp-contracts==1.0.0",
+  "mcp==2.2.0",
+  "fastapi==0.141.1",
+  "uvicorn==0.52.4",
+  "httpx==0.28.1",
+  "httpx2==2.12.0",
+  "PyYAML==6.0.3",
+  "jsonschema==4.26.0",
+  "structlog==26.1.0",
+  "opentelemetry-sdk==1.44.0",
+  "opentelemetry-exporter-otlp-proto-http==1.44.0",
+  "aiofiles==25.1.0",
+  "rich==15.0.0",
+]
+
+[dependency-groups]
+dev = [
+  "uv==0.12.13",
+  "pytest==9.1.1", "pytest-asyncio==1.4.0", "pytest-cov==7.1.0",
+  "ruff==0.16.7", "mypy==2.3.1", "types-PyYAML==6.0.12.20260906",
+  "types-jsonschema==4.26.0.20260518",
+]
+
+[tool.uv.sources]
+scientific-mcp-contracts = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/scientific_mcp_contracts"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_stack", "services"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = [".deps", ".generated"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "services", "packages/scientific_mcp_contracts/src", "scripts", "templates/python_scientific_mcp/src"]
+exclude = [".deps", ".generated"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "packages/scientific_mcp_contracts/tests"]
+asyncio_mode = "auto"
+addopts = "-ra"
+markers = ["integration: real MCP One and HTTP services", "e2e: real MCP client over HTTP"]

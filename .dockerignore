@@ -1,0 +1,17 @@
+.git
+.env
+.venv
+.uv-cache
+.generated
+.pytest_cache
+.ruff_cache
+.mypy_cache
+**/__pycache__
+**/*.pyc
+.deps/*/.git
+.deps/*/tests
+.deps/*/docs
+.deps/*/.github
+.coverage
+htmlcov
+dist

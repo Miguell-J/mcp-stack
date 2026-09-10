@@ -1,0 +1,8 @@
+id: symbolic-mcp
+enabled: false
+display_name: External Symbolic Tools
+namespace: symbolic
+transport: {type: streamable_http, url: 'http://symbolic-mcp:8080/mcp'}
+health: {url: 'http://symbolic-mcp:8080/health'}
+contract: {family: scientific-result, version: 1}
+metadata: {library: external-wrapper}

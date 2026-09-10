@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "example-scientific-mcp"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["mcp==2.2.0", "scientific-mcp-contracts==1.0.0", "uvicorn==0.52.4",
+                "opentelemetry-sdk==1.44.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/example_scientific_mcp"]
+
+[tool.uv.sources]
+scientific-mcp-contracts = {path = "../../packages/scientific_mcp_contracts"}

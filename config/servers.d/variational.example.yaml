@@ -1,0 +1,8 @@
+id: variational-mcp
+enabled: false
+display_name: Variational Calculus
+namespace: variational
+transport: {type: streamable_http, url: 'http://variational-mcp:8080/mcp'}
+health: {url: 'http://variational-mcp:8080/health'}
+contract: {family: scientific-result, version: 1}
+metadata: {library: variational}

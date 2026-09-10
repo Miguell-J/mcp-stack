@@ -1,0 +1,8 @@
+id: geomech-mcp
+enabled: false
+display_name: Geometric Mechanics
+namespace: mechanics
+transport: {type: streamable_http, url: 'http://geomech-mcp:8080/mcp'}
+health: {url: 'http://geomech-mcp:8080/health'}
+contract: {family: scientific-result, version: 1}
+metadata: {library: geomech}

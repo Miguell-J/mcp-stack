@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scientific-mcp-contracts"
+version = "1.0.0"
+description = "Scientific MCP Contract v1: domain-independent typed results"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = ["pydantic>=2.13.5,<3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scientific_mcp_contracts"]

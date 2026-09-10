@@ -1,0 +1,5 @@
+# Service definitions are generated from config/stack.yaml and config/servers.d.
+name: mcp-stack
+include:
+  - path: .generated/compose.yaml
+    project_directory: .
