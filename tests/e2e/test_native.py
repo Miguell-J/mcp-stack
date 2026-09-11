@@ -8,7 +8,7 @@ from mcp import Client, MCPError
 from mcp.client.streamable_http import streamable_http_client
 from mcp.types import ResourceLink, TextContent
 
-from mcp_stack.wire import ERROR_META, GATEWAY_META
+from mcp_stack.wire import ERROR_META, GATEWAY_META, INFRA_ERROR_META
 
 pytestmark = pytest.mark.e2e
 
@@ -41,7 +41,7 @@ async def test_native_discovery_call_and_full_envelope(endpoint):
             assert metadata["tool"] == "demo.identity_matrix"
             assert metadata["attempts"] == 1 and metadata["cached"] is False
             assert len(metadata["traceId"]) == 32 and metadata["durationMs"] > 0
-            # MCP One metrics prove this request went through the original router in integration.
+            # Integration tests also inspect MCP One's native router metrics.
             echoed = await client.call_tool("demo.echo", {"message": "scientific-stack"})
             assert echoed.structured_content["data"]["message"] == "scientific-stack"
             assert (
@@ -75,7 +75,7 @@ async def test_unknown_tool_and_invalid_arguments(endpoint):
             assert error.value.code == -32602
             invalid = await client.call_tool("demo.identity_matrix", {"size": 999})
             assert invalid.is_error
-            assert invalid.meta[ERROR_META]["code"] == "INVALID_ARGUMENT"
+            assert invalid.meta[INFRA_ERROR_META]["code"] == "INVALID_ARGUMENT"
             assert invalid.meta[GATEWAY_META]["attempts"] == 0
 
 

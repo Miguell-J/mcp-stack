@@ -1,6 +1,6 @@
 # ADR 0006: A separate entrance network for the native edge
 
-Status: accepted
+Status: superseded by ADR 0007; originally accepted
 
 Docker 29 did not publish the configured localhost port for an edge attached
 only to an internal bridge: HostConfig contained the binding, but

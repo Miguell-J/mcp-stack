@@ -1,5 +1,5 @@
 # Build from the mcp-stack root after make up has built this locked runtime image.
-FROM mcp-stack:0.1.0
+FROM mcp-stack:0.2.0
 USER root
 COPY templates/python_scientific_mcp/ /opt/adapter/
 RUN uv pip install --python /app/.venv/bin/python --no-deps /opt/adapter

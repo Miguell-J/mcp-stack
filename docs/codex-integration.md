@@ -15,7 +15,8 @@ Equivalent TOML:
 url = "http://127.0.0.1:8765/mcp"
 ```
 
-For the optional local bearer token, define MCP_STACK_TOKEN in the environment
+For optional local bearer authentication, set gateway.token_env: MCP_STACK_TOKEN
+in config/stack.yaml and define MCP_STACK_TOKEN in the environment
 of both Codex and the stack, then use:
 
 ```bash
@@ -23,10 +24,14 @@ codex mcp add scientific-stack --url http://127.0.0.1:8765/mcp --bearer-token-en
 ```
 
 The TOML equivalent adds `bearer_token_env_var = "MCP_STACK_TOKEN"`.
-No script edits ~/.codex/config.toml. MCP One's own REST URL must not be registered.
+No script edits ~/.codex/config.toml. Register MCP One's native /mcp URL directly; no edge adapter is needed.
 The installed `codex mcp add --help` was checked during implementation and confirms
 these options. `codex mcp list` lists configuration; use `/mcp` in a Codex session
 and the E2E client tests to check actual tool availability.
+
+Validation also ran add, list and get --json with CLI 0.154.0 in a temporary
+CODEX_HOME. The entry was enabled with streamable_http transport; the directory
+was then removed. No permanent user configuration was changed.
 
 The [official Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
 documents Streamable HTTP and shared config.toml settings. There is no hard Codex

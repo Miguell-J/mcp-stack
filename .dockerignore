@@ -8,10 +8,7 @@
 .mypy_cache
 **/__pycache__
 **/*.pyc
-.deps/*/.git
-.deps/*/tests
-.deps/*/docs
-.deps/*/.github
+.deps
 .coverage
 htmlcov
 dist

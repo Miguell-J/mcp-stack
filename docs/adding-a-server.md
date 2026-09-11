@@ -29,11 +29,11 @@ repository is intentionally untouched. No routing-code edits are required.
 
 For tokens set `transport.token_env: CRR_MCP_TOKEN`; provide the actual secret in
 the process environment/.env. The renderer only emits an environment reference.
-The health endpoint uses the same credential in this MVP. Do not put tokens in URLs.
+Health URLs are operational probes; the gateway uses native discovery. Do not put tokens in URLs.
 
-The bridge accepts native names `christoffel` or `geometry.christoffel`; both become
-`geometry.christoffel`. They cannot both appear in one catalog. It requires outputSchema
-with required data and rejects external references and oversized schemas/catalogs.
+MCP One accepts native names `christoffel` or `geometry.christoffel`; both become
+`geometry.christoffel`. They cannot both appear in one catalog. The scientific adapter must advertise outputSchema with required data; contract
+tests enforce it. MCP One validates generic schemas, external refs and catalog bounds.
 Schemas and annotations come from discovery, never duplicate YAML tool definitions.
 
 Large results must use ArtifactReference. Add a real resource/artifact retrieval

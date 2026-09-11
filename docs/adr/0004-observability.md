@@ -1,6 +1,6 @@
 # ADR 0004: OTel and explicit cache semantics
 
-Status: accepted, 2026-09-10.
+Status: superseded by ADR 0007; originally accepted, 2026-09-10.
 
 Decision: use SDK OTel spans and W3C inject/extract. Add request/route/duration and
 typed error metadata to JSON logs without inputs, output bodies or secrets. Carry

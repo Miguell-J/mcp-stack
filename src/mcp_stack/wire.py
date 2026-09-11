@@ -15,7 +15,7 @@ from scientific_mcp_contracts import (
 GATEWAY_META = "io.github.miguell-j.mcp-one/gateway"
 ERROR_META = "io.github.miguell-j.scientific/error"
 CONTRACT_META = "io.github.miguell-j.scientific/contract"
-DEFINITION_KEY = "x-mcp-stack-native-tool"
+INFRA_ERROR_META = "io.github.miguell-j.mcp-one/error"
 
 
 def result_for(model: BaseModel, summary: str) -> CallToolResult:
@@ -38,28 +38,6 @@ def error_result(
         content=[TextContent(type="text", text=f"{code.value}: {message}")],
         is_error=True,
         _meta={ERROR_META: error.model_dump(mode="json", exclude_none=True)},
-    )
-
-
-def legacy_error(code: str | None) -> CallToolResult:
-    mapping = {
-        "timeout": ErrorCode.TIMEOUT,
-        "http_error_504": ErrorCode.TIMEOUT,
-        "server_offline": ErrorCode.DOWNSTREAM_UNAVAILABLE,
-        "server_not_found": ErrorCode.DOWNSTREAM_UNAVAILABLE,
-        "circuit_open": ErrorCode.DOWNSTREAM_UNAVAILABLE,
-        "http_error_503": ErrorCode.DOWNSTREAM_UNAVAILABLE,
-        "tool_not_found": ErrorCode.RESOURCE_NOT_FOUND,
-        "http_error_404": ErrorCode.RESOURCE_NOT_FOUND,
-        "http_error_502": ErrorCode.INTERNAL_ERROR,
-        "http_error_422": ErrorCode.INTERNAL_ERROR,
-    }
-    stable = mapping.get(code or "", ErrorCode.DOWNSTREAM_UNAVAILABLE)
-    return error_result(
-        stable,
-        ErrorCategory.INFRASTRUCTURE,
-        "Gateway could not complete the downstream call.",
-        retryable=stable in {ErrorCode.TIMEOUT, ErrorCode.DOWNSTREAM_UNAVAILABLE},
     )
 
 

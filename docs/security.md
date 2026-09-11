@@ -1,51 +1,26 @@
 # Security
 
-## Threat model
+The default deployment serves one trusted local operator. Only MCP One publishes
+127.0.0.1 and joins the entrance network. Scientific containers stay on an internal
+network with no published ports. Containers run uid/gid 10001, drop all capabilities,
+use no-new-privileges/read-only source and bounded tmpfs, and mount no Docker socket.
 
-This MVP is for a single trusted local user. Untrusted websites must not reach
-the MCP endpoint through DNS rebinding, clients must not smuggle unbounded payloads,
-and downstream catalogs/results must not trigger arbitrary schema retrieval.
-Manifest authors and installed domain libraries are trusted executable-code
-operators. This is not a public multi-user authorization system or a sandbox for
-hostile scientific code. A malicious downstream may still consume its own CPU.
+MCP One's SDK Host/Origin validation protects the native and administrative edge.
+Optional gateway.token_env and gateway.admin_token_env select separate environment
+references for local bearer authentication. Downstream transport.token_env is
+forwarded only to that configured server. Missing configured credentials fail
+closed; generated YAML contains references, not values. No token belongs in a URL.
+The fixture is internal; its optional /health URL is for operations, not registry
+protocol discovery. No arbitrary client URL is accepted for enrollment or routing.
 
-The only host binding is loopback. Only the edge joins the non-internal entrance
-network needed for Docker port publishing; scientific services remain isolated.
-SDK Host/Origin checks are enabled with explicit
-allowlists. The bridge and hub are on an internal network without published ports
-or external egress. All core containers run uid/gid 10001, drop capabilities, have
-no-new-privileges, read-only filesystems and bounded tmpfs. No Docker socket, host
-home, privileged flag or broad host filesystem mount is used.
+Public Internet deployment requires HTTPS, proper MCP OAuth resource-server
+integration and per-client policy, outside this local composition. Local bearer
+security is not advertised as OAuth. The upstream gateway enforces request/response,
+schema/catalog and concurrency bounds, rejects redirects and external schema refs,
+and does not log bodies/tokens. Only enroll trusted schemas; CPU-hostile regex or
+recursive schema isolation requires a separate execution boundary.
 
-Optional local bearer verification uses constant-time comparison at the edge.
-This is a local shared-secret gate, not MCP OAuth authorization. Remote deployment
-requires HTTPS, an MCP-compliant OAuth resource server and per-user policy; do not
-publish the current localhost configuration to the Internet. Tool annotations
-do not grant permissions. Authentication happens before request parsing.
-
-Secrets come from named environment variables, never config YAML. .env is ignored.
-Downstream credentials must be available in the bridge and are forwarded only to
-the explicitly configured server. No redirects, ambient HTTP proxy settings or
-arbitrary URI downloads are used. Logs omit arguments, results and tokens.
-
-## Bounds
-
-- 1 MiB default HTTP request/result cap, with chunked request checks.
-- Downstream streams are bounded before SDK parsing; compressed responses are
-  rejected to make the bound effective. Standard uncompressed JSON/SSE is supported.
-- 128 KiB per schema, depth 32, 256 aggregate tools by default.
-- External $ref/$dynamicRef, schema base URI changes and older dialect declarations
-  are rejected before use. Only local $defs references are allowed. The SDK also
-  uses an explicit reference registry rather than network fetching.
-- Tool arguments and runtime results validate against their concrete schemas.
-- Explicit nested timeouts: downstream < MCP One bridge timeout < edge timeout.
-- Numerical representations reject NaN/Infinity and cap inline components.
-
-Schema validation is bounded in size/depth but is not an isolation boundary for
-adversarial exponential JSON Schemas or regular expressions. Only enroll trusted
-scientific adapters; execution isolation/CPU quotas need a separate design before
-accepting arbitrary third-party catalogs. Rate limiting is MCP One's process-local
-per-IP limiter; all edge calls share the same internal client identity.
-
-ArtifactReference describes a handle, not authorization to fetch a URI. Its future
-resolver must enforce scheme/host allowlists, byte budgets and ownership checks.
+Scientific contracts keep their own finite-number/inline-size checks in adapters.
+MCP One never imports those models. Artifact references are opaque; they do not
+permit the gateway to fetch arbitrary locations. Result caching is absent.
+Use namespaced infrastructure errors without fabricating scientific diagnostics.

@@ -4,7 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "image": {
-          "default": "mcp-stack:0.1.0",
+          "default": "mcp-stack:0.2.0",
           "title": "Image",
           "type": "string"
         },
@@ -110,21 +110,37 @@
           "title": "Port",
           "type": "integer"
         },
-        "one_url": {
-          "default": "http://mcp-one:8000",
-          "title": "One Url",
-          "type": "string"
+        "token_env": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z][A-Z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Token Env"
         },
-        "bridge_url": {
-          "default": "http://legacy-bridge:8080",
-          "title": "Bridge Url",
-          "type": "string"
+        "admin_token_env": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z][A-Z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Admin Token Env"
         },
-        "request_timeout_seconds": {
-          "default": 15,
-          "maximum": 180,
-          "minimum": 1,
-          "title": "Request Timeout Seconds",
+        "refresh_interval_seconds": {
+          "default": 5,
+          "maximum": 300,
+          "minimum": 0.1,
+          "title": "Refresh Interval Seconds",
           "type": "number"
         },
         "max_payload_bytes": {
@@ -155,18 +171,11 @@
           "title": "Max Schema Depth",
           "type": "integer"
         },
-        "catalog_ttl_seconds": {
-          "default": 0,
-          "maximum": 60,
-          "minimum": 0,
-          "title": "Catalog Ttl Seconds",
-          "type": "integer"
-        },
-        "health_retry_attempts": {
-          "default": 1,
-          "maximum": 3,
+        "discovery_attempts": {
+          "default": 3,
+          "maximum": 5,
           "minimum": 1,
-          "title": "Health Retry Attempts",
+          "title": "Discovery Attempts",
           "type": "integer"
         },
         "circuit_breaker_failures": {
@@ -181,13 +190,6 @@
           "maximum": 300,
           "minimum": 1,
           "title": "Circuit Breaker Reset Seconds",
-          "type": "integer"
-        },
-        "rate_limit_per_minute": {
-          "default": 600,
-          "maximum": 10000,
-          "minimum": 30,
-          "title": "Rate Limit Per Minute",
           "type": "integer"
         }
       },
@@ -241,7 +243,15 @@
           "$ref": "#/$defs/Transport"
         },
         "health": {
-          "$ref": "#/$defs/Health"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Health"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "contract": {
           "$ref": "#/$defs/Contract"
@@ -269,8 +279,7 @@
         "id",
         "display_name",
         "namespace",
-        "transport",
-        "health"
+        "transport"
       ],
       "title": "ServerManifest",
       "type": "object"

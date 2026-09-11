@@ -79,6 +79,8 @@ def main() -> None:
     if target != config.mcp_one.ref:
         print("WARNING: local ref override differs from the reproducible stack pin", flush=True)
     run(str(python), "-m", "compileall", "-q", str(dependency / "src"))
+    run(str(uv), "sync", "--locked", cwd=dependency)
+    run(str(dependency / ".venv/bin/python"), "-c", "from mcp_one.server import create_app")
     render(config, ROOT)
     print("Bootstrap complete. Run make up.")
 
