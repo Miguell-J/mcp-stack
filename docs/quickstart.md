@@ -25,6 +25,11 @@ GET /health is liveness and GET /ready reports useful routing availability.
 make health reads /status; a downstream outage need not restart a healthy hub.
 Tool execution is always MCP /mcp, not an administrative REST endpoint.
 
+After container health checks, `make up` waits up to 60 seconds for MCP One's useful
+routing readiness. `make health` remains a one-shot probe. If readiness never
+arrives, `make up` exits nonzero and leaves the containers/panel available for
+diagnosis; it does not claim that process liveness means the stack is ready.
+
 Open `http://127.0.0.1:8766` in your browser when `make up` completes. The UI observes
 the gateway every five seconds and its native catalog every thirty seconds. With
 `dashboard.enabled: false`, the normal MCP topology runs without the UI. After

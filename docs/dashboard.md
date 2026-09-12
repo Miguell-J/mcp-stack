@@ -118,7 +118,7 @@ installing a library alone does not expose its functions as MCP tools.
 
 ## Validation
 
-Local validation on 2026-09-12: 80 Python tests passed (host Python 3.14), plus four
+Local validation on 2026-09-12: 83 Python tests passed (host Python 3.14), plus four
 Chromium browser tests against the running Docker stack (runtime Python 3.12).
 The general suite skips those four browser tests unless its explicit endpoint is
 set; they were run separately with desktop/mobile screenshots. Native Docker E2E
@@ -137,6 +137,11 @@ counter resets, per-server aggregation and gaps. No payload capture is used.
 The first remote browser run exposed an assertion timeout of five seconds during
 cold-start catalog refresh. Locator assertions now allow the documented discovery
 interval plus request/poll time; this does not change production refresh semantics.
+Cold-start CI also exposed that Compose liveness can precede gateway catalog
+readiness. `make up` now waits up to 60 seconds for useful routing after container
+health, and fails visibly if it is unavailable. The browser fixture waits for a
+metric baseline before generating two native test calls, so graph checks do not
+depend on image or browser installation speed.
 
 ```bash
 make lint test test-integration
