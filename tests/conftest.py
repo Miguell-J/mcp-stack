@@ -26,7 +26,7 @@ class LiveStack:
         self.directory = directory
         self.processes = {}
         self.logs = {}
-        self.ports = {name: free_port() for name in ("mock", "bridge", "one", "edge")}
+        self.ports = {name: free_port() for name in ("mock", "one")}
         data = load_config(ROOT / "config/stack.yaml").model_dump()
         data["servers"] = [s for s in data["servers"] if s["enabled"]]
         data["servers"][0]["transport"].update(
@@ -36,12 +36,12 @@ class LiveStack:
             url=f"http://127.0.0.1:{self.ports['mock']}/health", timeout_seconds=0.3
         )
         data["gateway"].update(
-            one_url=f"http://127.0.0.1:{self.ports['one']}",
-            bridge_url=f"http://127.0.0.1:{self.ports['bridge']}",
+            refresh_interval_seconds=0.5,
             circuit_breaker_reset_seconds=1,
         )
         self.config = StackConfig.model_validate(data)
-        self.url = f"http://127.0.0.1:{self.ports['edge']}/mcp"
+        self.admin_url = f"http://127.0.0.1:{self.ports['one']}"
+        self.url = self.admin_url + "/mcp"
         config_dir = directory / "config"
         (config_dir / "servers.d").mkdir(parents=True)
         servers = data.pop("servers")
@@ -59,16 +59,24 @@ class LiveStack:
     def start(self, name: str) -> None:
         env = dict(self.env)
         if name == "one":
-            env["PYTHONPATH"] = str(ROOT / ".deps/mcp-one/src")
-            env["MCP_ONE_TEST_CONFIG"] = str(self.one_config_path)
-            env["MCP_ONE_TEST_PORT"] = str(self.ports[name])
-            command = [sys.executable, str(ROOT / "tests/launch_one.py")]
+            source = Path(os.getenv("MCP_ONE_SOURCE", ROOT / ".deps/mcp-one")).resolve()
+            env["MCP_ONE_CONFIG"] = str(self.one_config_path)
+            command = [
+                str(source / ".venv/bin/python"),
+                "-m",
+                "uvicorn",
+                "mcp_one.server:create_app",
+                "--factory",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(self.ports[name]),
+                "--no-access-log",
+            ]
             route = "/health"
         else:
             modules = {
                 "mock": "services.mock_scientific_mcp.app",
-                "bridge": "services.gateway_edge.bridge",
-                "edge": "services.gateway_edge.edge",
             }
             if name == "mock" and "STACK_FAULT_FILE" in env:
                 modules["mock"] = "tests.faulty_mcp"
@@ -121,7 +129,7 @@ class LiveStack:
 def live_stack(tmp_path_factory):
     stack = LiveStack(tmp_path_factory.mktemp("scientific-stack"))
     try:
-        for name in ("mock", "bridge", "one", "edge"):
+        for name in ("mock", "one"):
             stack.start(name)
         yield stack
     finally:

@@ -1,37 +1,30 @@
-# Compatibility
+# Protocol compatibility
 
-| Layer | Pin / target | Meaning |
-| --- | --- | --- |
-| mcp-stack | 0.1.0 | SemVer software release |
-| MCP protocol | 2026-07-28 | Native edge and mock target |
-| Official Python SDK | mcp 2.2.0 / mcp-types 2.2.0 | Wire framing, discovery, negotiation, HTTP and native types |
-| MCP One | dafd1e1ed681a05f2dc7ea0c0e7ab796036c9689 | Unmodified legacy REST implementation |
-| Scientific contract | v1 / package 1.0.0 | Independently versioned scientific result/data representation |
-| Codex | Installed CLI with `mcp add --url` | No hard version floor; syntax checked locally |
-| Python | >=3.12,<3.15 | Docker 3.12.12; local tests also 3.14.3 |
+| Layer | Target |
+| --- | --- |
+| mcp-stack | 0.2.0 |
+| MCP | 2026-07-28 |
+| Official Python SDK/types | 2.2.0 |
+| MCP One | native 1.0 candidate; immutable commit in config/stack.yaml |
+| Scientific contract | v1, package 1.0.0 |
+| Python | >=3.12,<3.15; containers 3.12.12, local host 3.14.3 |
+| Codex | Streamable HTTP --url; use current CLI syntax |
 
-The SDK implements core stateless requests, server/discover, per-request metadata,
-Streamable HTTP, MCP-Protocol-Version, Mcp-Method and Mcp-Name, including mismatch
-validation. The stack does not construct protocol responses or version fallbacks.
-It uses stateless_http=True to avoid hidden application sessions and supports
-SDK-managed older handshake clients where available. Tests use the SDK's legacy
-connection mode specifically to check that compatibility.
+The official SDK owns stateless server/discover, tools/list and tools/call,
+per-request metadata, JSON-RPC/framing, MCP-Protocol-Version, Mcp-Method, Mcp-Name
+and W3C trace propagation. Native calls carry no semantic session history.
+SDK-provided legacy handshake compatibility remains covered by real-client tests.
 
-inputSchema and outputSchema use JSON Schema 2020-12. Pydantic/SDK generate the
-schemas and actual runtime output is checked against the advertised definition.
-Scientific results use content, structuredContent, isError and namespaced _meta.
-The SDK may add reserved protocol metadata, resultType and discovery/cache fields.
-Those are native MCP fields, not a custom scientific wire protocol.
+JSON Schema 2020-12 input/output definitions pass through unchanged. Native
+content, structuredContent, isError and _meta remain intact. ScientificResult,
+diagnostics, provenance and artifact references are opaque to the gateway.
+Successful results are validated against outputSchema; domain error results do
+not pretend to conform to the successful data shape.
 
-Discovery hints default to ttlMs=0 and cacheScope=private. There is no result cache.
-Legacy clients can ignore cache hints; modern clients must honor protocol freshness
-and authorization scope. The static server/discover response belongs to the SDK.
-
-Tools-only aggregation is the MVP capability. Resource references are preserved,
-but resource federation, prompts, subscriptions, tasks, input-required workflows,
-sampling and elicitation are not advertised by the edge. `resultType` must be complete.
+Gateway discovery is private TTL zero. Its operational catalog refresh/stale
+policy is explicitly separate from response freshness. No tool result cache
+exists. The capability scope is tools federation only: resources, subscriptions,
+tasks, elicitation/sampling and multi-round continuations are not advertised.
 
 Sources: [MCP specification](https://modelcontextprotocol.io/specification/2026-07-28),
-[transport model](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports),
-[official SDK](https://github.com/modelcontextprotocol/python-sdk),
-[Codex MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+[official SDK](https://github.com/modelcontextprotocol/python-sdk/releases/tag/v2.2.0).

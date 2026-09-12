@@ -10,25 +10,23 @@ from mcp_stack.config import load_config
 async def main() -> int:
     config = load_config()
     endpoint = os.getenv("STACK_ENDPOINT", config.gateway.endpoint)
-    token = os.getenv("MCP_STACK_TOKEN")
+    token = os.getenv(config.gateway.admin_token_env) if config.gateway.admin_token_env else None
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     try:
         async with httpx.AsyncClient(trust_env=False, timeout=20, headers=headers) as client:
-            response = await client.get(endpoint.removesuffix("/mcp") + "/health")
+            response = await client.get(endpoint.removesuffix("/mcp") + "/status")
             response.raise_for_status()
             data = response.json()
-    except httpx.HTTPStatusError as exc:
-        if exc.response.status_code != 503:
-            print(f"mcp-stack health request rejected: HTTP {exc.response.status_code}")
-            return 1
-        data = exc.response.json()
-    except httpx.HTTPError:
-        print("mcp-stack unreachable")
+    except httpx.HTTPError as exc:
+        status = (
+            exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else "unreachable"
+        )
+        print(f"mcp-stack unavailable ({status})")
         return 1
-    print(f"mcp-stack {data['status']}")
-    for service, status in data["services"].items():
-        print(f"{service} {status}")
-    return 0 if data["status"] == "healthy" else 1
+    print(f"mcp-stack {'ready' if data['ready'] else 'not ready'}")
+    for service, status in data["servers"].items():
+        print(f"{service} {status['state']}")
+    return 0 if data["ready"] else 1
 
 
 if __name__ == "__main__":

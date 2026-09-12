@@ -2,22 +2,20 @@
 
 | Symptom | Check |
 | --- | --- |
-| Bootstrap refuses an existing checkout | git -C .deps/mcp-one status; compare HEAD with stack.yaml; explicit --update-dependency only for a clean checkout |
-| MCP One IndentationError | default upstream master is broken; use the audited immutable pin |
-| Docker permission denied | start Docker and grant your user Docker access; no socket mount is needed |
-| Port already allocated | change gateway.port in stack.yaml and run make render/up/codex-config |
-| Codex sees no tools | use the native /mcp endpoint, make health, make tools; do not register MCP One /tools |
-| 401 | set the same MCP_STACK_TOKEN in Codex and stack environments |
-| Host/Origin rejected | use localhost; for a new internal server configure its exact SDK allowed hostname |
-| DOWNSTREAM_UNAVAILABLE | inspect health, private hub metrics and bridge logs; circuit may be temporarily open |
-| TIMEOUT | check backend duration; adjust downstream then outer timeout while preserving nesting |
-| INTERNAL_ERROR with isError | response/schema/bridge contract failed; inspect error type in logs, not scientific data |
-| Invalid catalog or missing server tools | missing outputSchema, external refs, duplicate normalized names or unhealthy downstream |
-| Old tool still callable during outage | MCP One retains its registry; the edge call returns infrastructure error, not stale results |
-| Collector exports fail | enable observability profile and set the full OTLP /v1/traces URL |
-| Tests hang in a restricted sandbox | integration tests need loopback sockets and subprocess/thread support; run in an allowed local environment |
+| Bootstrap refuses checkout | Check official origin, dirty files and full configured pin; explicit --update-dependency switches clean revisions |
+| Native package import fails | Reinstall that checkout's uv.lock; verify the selected revision is native |
+| Docker permission denied | Permit local Docker access; containers need no socket mount |
+| Port allocated | Change gateway.port, render, restart and regenerate Codex instructions |
+| Empty catalog | Read /status; invalid schemas/collisions are rejected, transient failures may retain stale definitions |
+| /ready 503, /health 200 | The hub is alive but lacks the minimum useful routes |
+| CALL_TIMEOUT | Review downstream call budget; do not blindly replay mutating tools |
+| CIRCUIT_OPEN | Wait the configured reset; one actual call probes recovery |
+| DOWNSTREAM_PROTOCOL_ERROR | Inspect catalog/outputSchema and sanitized logs |
+| AUTH_FAILED | Check the proper upstream/admin/downstream environment reference |
+| Codex sees REST migration notice | Register /mcp directly on MCP One |
+| Collector unavailable | Enable its profile or unset OTEL_EXPORTER_OTLP_TRACES_ENDPOINT |
+| Tests stall in sandbox | Real SDK tests need loopback/IPC and child-process permissions |
 
-Run `make test-integration` for repeatable failures/recovery. The tests terminate
-and restart only their own mock process and clean up all child processes.
-To check actual containers use scripts/fault_check.py, which restores the mock
-in a finally block. `make down` stops only this Compose project.
+make test-integration injects faults only into its own fixture processes and cleans
+them up. make fault-check stops/restarts only this Compose project's mock and
+restores it in a finally block. Historical REST problems are archived in docs/history.

@@ -1,26 +1,7 @@
 import pytest
 from mcp.types import CallToolResult, TextContent, Tool
 
-from mcp_stack.wire import ERROR_META, bounded_json, legacy_error, validate_result, validate_schema
-
-
-@pytest.mark.parametrize(
-    "legacy,code",
-    [
-        ("timeout", "TIMEOUT"),
-        ("http_error_504", "TIMEOUT"),
-        ("circuit_open", "DOWNSTREAM_UNAVAILABLE"),
-        ("server_offline", "DOWNSTREAM_UNAVAILABLE"),
-        ("http_error_502", "INTERNAL_ERROR"),
-        ("tool_not_found", "RESOURCE_NOT_FOUND"),
-    ],
-)
-def test_legacy_error_mapping(legacy, code):
-    result = legacy_error(legacy)
-    assert result.is_error
-    assert result.meta[ERROR_META]["code"] == code
-    assert result.meta[ERROR_META]["category"] == "infrastructure"
-    assert result.structured_content is None
+from mcp_stack.wire import bounded_json, validate_result, validate_schema
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,6 @@
 # ADR 0005: Audited upstream pin and operational image
 
-Status: accepted, 2026-09-10.
+Status: superseded by ADR 0007; originally accepted, 2026-09-10.
 
 Context: upstream HEAD 9e938ed fails compilation/import/test collection. Earlier
 Phase 4 commit dafd1e1ed681a05f2dc7ea0c0e7ab796036c9689 compiles and retains

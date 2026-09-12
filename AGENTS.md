@@ -10,9 +10,9 @@
 - MCP One owns registry, routing and circuit breaking. Its official, immutable
   dependency checkout is under `.deps/mcp-one`. Never copy or rewrite its code in
   this repo, monkeypatch its router, or silently change its pin.
-- `services/gateway_edge` contains the temporary native edge and downstream
-  REST/MCP bridge. Use only public SDK interfaces. Never implement MCP framing,
-  version negotiation, discovery or handshake yourself.
+- MCP One is the native edge and downstream MCP client. Do not recreate gateway-edge
+  or legacy-bridge in the normal path. Use public SDK interfaces in adapters/tests.
+  Never implement framing, version negotiation, discovery or handshakes yourself.
 - Add servers by manifest/configuration, not tool-specific routing branches.
 - Meaningful architectural changes require an ADR and updated operational docs.
 
@@ -70,7 +70,7 @@ only in their own processes, and must restore/stop everything in finally blocks.
 
 ## Security and operations
 
-- Bind the public endpoint to loopback. Downstreams and bridge stay on the internal
+- Bind the public endpoint to loopback. Downstreams stay on the internal
   Docker network. No privileged containers, root runtime, socket mounts or secrets
   in Git, logs, generated config, test artifacts or command arguments.
 - Secrets are environment references; `.env` is ignored. Never print tokens.

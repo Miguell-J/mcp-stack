@@ -18,25 +18,28 @@ def test_current_config_and_render_reproducibility(tmp_path):
     assert first.startswith(b"# GENERATED FILE")
     services = compose_config(config)["services"]
     exposed = {k for k, v in services.items() if v.get("ports")}
-    assert exposed == {"gateway-edge"}
-    assert services["gateway-edge"]["ports"] == ["127.0.0.1:8765:8080"]
+    assert exposed == {"mcp-one"}
+    assert services["mcp-one"]["ports"] == ["127.0.0.1:8765:8000"]
+    assert services["mcp-one"]["build"]["target"] == "runtime"
     assert compose_config(config)["networks"]["scientific"]["internal"]
-    assert services["gateway-edge"]["networks"] == ["entrance", "scientific"]
+    assert services["mcp-one"]["networks"] == ["entrance", "scientific"]
     assert all(
         "entrance" not in service["networks"]
         for name, service in services.items()
-        if name != "gateway-edge"
+        if name != "mcp-one"
     )
     runtime_builders = [
-        s for s in services.values() if s.get("image") == "mcp-stack:0.1.0" and "build" in s
+        s for s in services.values() if s.get("image") == "mcp-stack:0.2.0" and "build" in s
     ]
     assert len(runtime_builders) == 1
-    assert one_config(config)["cache"]["enabled"] is False
-    assert one_config(config)["servers"][0]["name"] == "demo"
+    assert "cache" not in one_config(config)
+    assert one_config(config)["servers"][0]["namespace"] == "demo"
+    assert "legacy-bridge" not in services
+    assert "gateway-edge" not in services
     assert config.gateway.endpoint == "http://127.0.0.1:8765/mcp"
     config.gateway.bind = "::1"
     assert config.gateway.endpoint == "http://[::1]:8765/mcp"
-    assert compose_config(config)["services"]["gateway-edge"]["ports"] == ["[::1]:8765:8080"]
+    assert compose_config(config)["services"]["mcp-one"]["ports"] == ["[::1]:8765:8000"]
 
 
 @pytest.mark.parametrize("key", ["id", "namespace"])
@@ -86,5 +89,13 @@ def test_adding_server_requires_no_route_changes():
     added.update(id="future-mcp", namespace="future")
     data["servers"].append(added)
     config = StackConfig.model_validate(data)
-    assert one_config(config)["servers"][1]["name"] == "future"
+    assert one_config(config)["servers"][1]["namespace"] == "future"
     assert "future-mcp" in compose_config(config)["services"]
+
+
+def test_mcp_enrollment_does_not_require_rest_health():
+    data = load_config().model_dump()
+    next(server for server in data["servers"] if server["enabled"]).pop("health")
+    config = StackConfig.model_validate(data)
+    assert one_config(config)["servers"][0]["timeout"]["health_seconds"] == 2
+    assert "healthcheck" not in compose_config(config)["services"][config.enabled_servers[0].id]

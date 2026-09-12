@@ -13,7 +13,7 @@ from mcp_stack.config import load_config
 async def main(as_json: bool) -> None:
     config = load_config()
     url = os.getenv("STACK_ENDPOINT", config.gateway.endpoint)
-    token = os.getenv("MCP_STACK_TOKEN")
+    token = os.getenv(config.gateway.token_env) if config.gateway.token_env else None
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     async with httpx2.AsyncClient(headers=headers, trust_env=False) as http:
         async with Client(streamable_http_client(url, http_client=http), cache=None) as client:

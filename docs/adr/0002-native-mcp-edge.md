@@ -1,6 +1,6 @@
 # ADR 0002: Native MCP edge with removable legacy compatibility
 
-Status: accepted, 2026-09-10.
+Status: superseded by ADR 0007; originally accepted, 2026-09-10.
 
 Context: empirical POST /mcp to the original hub returns 404. Both its public and
 downstream interfaces are custom REST. Its registry drops native schema metadata.

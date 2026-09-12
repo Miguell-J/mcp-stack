@@ -43,7 +43,7 @@ class Contract(ConfigModel):
 
 
 class Container(ConfigModel):
-    image: str = "mcp-stack:0.1.0"
+    image: str = "mcp-stack:0.2.0"
     command: list[str] = Field(min_length=1)
     port: int = Field(default=8080, ge=1024, le=65535)
     profile: Literal["core", "dev"] = "core"
@@ -62,7 +62,7 @@ class ServerManifest(ConfigModel):
     display_name: str
     namespace: Identifier
     transport: Transport
-    health: Health
+    health: Health | None = None
     contract: Contract = Field(default_factory=Contract)
     metadata: dict[str, str] = Field(default_factory=dict)
     container: Container | None = None
@@ -84,19 +84,16 @@ class Dependency(ConfigModel):
 class Gateway(ConfigModel):
     bind: Literal["127.0.0.1", "::1"] = "127.0.0.1"
     port: int = Field(default=8765, ge=1024, le=65535)
-    one_url: str = "http://mcp-one:8000"
-    bridge_url: str = "http://legacy-bridge:8080"
-    request_timeout_seconds: float = Field(default=15, ge=1, le=180)
+    token_env: str | None = Field(default=None, pattern=r"^[A-Z][A-Z0-9_]*$")
+    admin_token_env: str | None = Field(default=None, pattern=r"^[A-Z][A-Z0-9_]*$")
+    refresh_interval_seconds: float = Field(default=5, ge=0.1, le=300)
     max_payload_bytes: int = Field(default=1048576, ge=1024, le=4194304)
     max_schema_bytes: int = Field(default=131072, ge=1024, le=1048576)
     max_tools: int = Field(default=256, ge=1, le=2048)
     max_schema_depth: int = Field(default=32, ge=4, le=64)
-    catalog_ttl_seconds: int = Field(default=0, ge=0, le=60)
-    health_retry_attempts: int = Field(default=1, ge=1, le=3)
+    discovery_attempts: int = Field(default=3, ge=1, le=5)
     circuit_breaker_failures: int = Field(default=3, ge=1, le=100)
     circuit_breaker_reset_seconds: int = Field(default=5, ge=1, le=300)
-    rate_limit_per_minute: int = Field(default=600, ge=30, le=10000)
-    _urls = field_validator("one_url", "bridge_url")(safe_url)
 
     @property
     def endpoint(self) -> str:
@@ -119,18 +116,11 @@ class StackConfig(ConfigModel):
                 raise ValueError(f"duplicate server {key}")
         for s in self.servers:
             if s.id in {
-                "gateway-edge",
-                "legacy-bridge",
                 "mcp-one",
                 "test-runner",
                 "otel-collector",
             }:
                 raise ValueError("server ID is reserved for infrastructure")
-            if (
-                s.enabled
-                and self.gateway.request_timeout_seconds <= s.transport.timeout_seconds + 2
-            ):
-                raise ValueError("gateway timeout must exceed downstream timeout by more than 2s")
             if s.enabled and s.container and s.container.profile != "core":
                 raise ValueError("enabled managed servers must use core profile")
         return self

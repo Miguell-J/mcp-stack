@@ -1,118 +1,88 @@
-# Validation record
+# Native stack validation
 
-Executed on 2026-09-10, Linux x86_64. Host Python 3.14.3; runtime and development
-containers Python 3.12.12. These are observations from real execution, not
-expected example output.
+Executed 2026-09-11 and rechecked 2026-09-12, Linux x86_64, host Python 3.14.3
+and containers Python 3.12.12.
+The old four-process deployment was stopped and its gateway-edge/legacy-bridge
+containers removed. The actual replacement path is:
 
-The first published commit fe9d105 passed all three remote jobs in
-[GitHub Actions run 34526441474](https://github.com/Miguell-J/mcp-stack/actions/runs/34526441474):
-quality on Python 3.12 (32 s), quality on Python 3.14 (36 s), and integration
-(3 min 39 s), including real Docker builds, external E2E, stop/restart fault
-injection, the dev runner and the template build. The workflow Actions were then
-updated to published Node 24-compatible major versions to remove deprecation
-annotations. The latest run on main is authoritative for subsequent commits.
+```text
+SDK client / Codex configuration
+        -> MCP One :8765/mcp
+        -> mock-scientific-mcp (internal network)
+```
 
-## Results
+The dependency is the official clean MCP One commit
+`4f1b54e563c12cd71f0ca3490d140b2e42b734ad`, version 1.0.0rc1. Bootstrap fetched
+that commit from the official URL, checked origin/cleanliness, compiled/imported
+the native package and installed its own locked dependencies without source edits.
+MCP One's [remote CI passed](https://github.com/Miguell-J/mcp-one/actions/runs/34644211632)
+on Python 3.12/3.14 and Docker. Its [PR](https://github.com/Miguell-J/mcp-one/pull/6)
+contains the migration and standalone validation record.
 
-| Check | Actual result |
+| Check | Observed result |
 | --- | --- |
-| Full local `python -m pytest -q` | 64 passed, 1 third-party deprecation warning, 34.32 s |
-| Focused `make test` | 51 unit/contract tests passed, 0.89 s |
-| Thin adapter `make test-template` | 1 passed, 0.51 s |
-| Host SDK client against Docker stack | 6 E2E passed, 6.44 s |
-| Python 3.12 SDK client in dev container | 6 E2E passed, 6.59 s |
-| Ruff check / format check | Passed |
-| Strict mypy | No issues in 26 source files |
-| Compose validation, all three profiles | Passed |
-| Runtime, MCP One, dev and template image builds | Passed |
-| Template import and app factory in non-root, read-only container | Passed |
-| Docker stop/start fault check | Health 503 + infrastructure isError, then health 200 + successful call |
-| Optional OTel Collector | Started; real OTLP trace batches received, including 45, 51 and 17 spans |
-| Codex configuration generator | Endpoint, add command, list command and TOML printed without editing user config |
-| Bootstrap rerun / shutdown / fresh startup | All passed; dependency stayed clean and pinned |
+| Stack full local pytest suite against the clean pin | 60 passed, one third-party warning, 24.40 s |
+| Scientific adapter template | 1 passed, 0.59 s |
+| Native gateway standalone | 62 passed on Python 3.14 and Python 3.12; 91.28% coverage |
+| Ruff / format / strict mypy | Passed; stack mypy covers 23 source files |
+| Native runtime, stack runtime, dev runner and template builds | Passed |
+| Host SDK client against Docker endpoint | 6 E2E passed, 0.69 s |
+| Python 3.12 SDK client inside Docker | 6 E2E passed, 1.07 s |
+| Docker mock stop/restart | Readiness 503 + infrastructure isError; recovery to 200 + successful call |
+| Template non-root/read-only app factory | Passed, UID 10001 |
+| All Compose profiles config validation | Passed |
+| Optional collector | Actual OTLP trace batches received, including 3/4-span batches during native discovery |
+| Codex CLI 0.154.0 | add, list and get --json succeeded using a temporary CODEX_HOME |
 
-The warning is Starlette's use of the deprecated AnyIO BlockingPortal alias,
-not use of a deprecated MCP API by this project. A sandboxed in-process SDK
-test stalled on restricted IPC; it was terminated and rerun successfully outside
-the sandbox. Local integration tests require permission to bind loopback sockets.
+Repeated E2E runs are the same six scenarios, not extra unique tests. The warning
+comes from Starlette's deprecated AnyIO BlockingPortal alias, not a deprecated MCP
+API in this project. Restricted sandbox IPC stalled the first template attempt;
+it was interrupted and rerun successfully with local IPC available. Docker used
+its classic builder fallback because the local host lacks buildx; CI installs it.
 
-The E2E counts above are repeated executions of the same six scenarios on
-different topologies, not additional unique test cases. The template adds one
-independent test beyond the 64-test root suite.
+The first remote stack integration run exposed test references to the removed
+gateway.one_url config field after the final legacy-field cleanup. The fixtures
+now derive their admin URL from the actual test listener; the native gateway/pin
+did not change. That failed run is retained in Actions history, and the complete
+suite was rerun before publishing the correction.
 
-## Acceptance evidence
+`make health` reports `mcp-stack ready` and `mock-scientific-mcp ONLINE`.
+`make tools` obtains native tools/list and returns demo.artifact,
+demo.contract_error, demo.echo, demo.identity_matrix and demo.slow.
 
-`make health` against the published Docker endpoint returned:
+The contract tests compare direct/routed definitions and identity_matrix,
+contract_error and artifact results: content, structuredContent, isError, every
+original metadata key, concrete outputSchema, ScientificResult diagnostics and
+provenance, including the untouched artifact reference. MCP One imports no
+scientific contract package. Real SDK tests also verify server/discover,
+Mcp-Method, Mcp-Name, MCP-Protocol-Version, no session ID in modern calls, private
+TTL zero, unknown tools, invalid arguments, malformed requests and free SDK legacy
+handshake compatibility. Fault tests cover timeouts, circuits, recovery and invalid
+catalogs/results. The gateway's separate adversarial review covers duplicate
+execution, cookie isolation, metadata collisions, cancellation and auth errors.
 
-```text
-mcp-stack healthy
-native MCP edge healthy
-mcp-one healthy
-mock-scientific-mcp healthy
-```
+## Benchmark
 
-`make tools` queried native tools/list and returned:
+Raw observations are in [native-benchmark.json](native-benchmark.json). Ten warmups
+per path, then 100 sequential calls each in alternating order; nearest-rank p95.
 
-```text
-demo
-  demo.artifact
-  demo.contract_error
-  demo.echo
-  demo.identity_matrix
-  demo.slow
-```
+| Path | Median | p95 |
+| --- | --- | --- |
+| SDK client -> mock | 4.398 ms | 5.929 ms |
+| SDK client -> MCP One -> mock | 10.314 ms | 14.949 ms |
 
-The real SDK E2E verifies server/discover, protocol 2026-07-28, Mcp-Method,
-Mcp-Name, MCP-Protocol-Version, no session ID in modern mode, legacy-mode
-compatibility, TTL zero, concrete outputSchema validation, human content,
-structuredContent, diagnostics, provenance, isError and namespaced metadata.
-The mock and edge report the same W3C trace ID. Integration tests additionally
-inspect MCP One's actual routed-call metrics to prove the original router was used.
+The difference between medians was 5.916 ms. This is a development smoke test,
+not a load benchmark, scientific study or production latency guarantee. The
+benchmark ran temporary real HTTP processes and always shut them down.
 
-Domain errors do not trip the original circuit breaker. Repeated infrastructure
-timeouts open it; a later attempt after the configured reset succeeds. Tests also
-stop and restore both the mock and hub; inject invalid runtime output, invalid
-schemas, external schema references and duplicate normalized names; and test
-unknown tools, malformed JSON, mismatched method headers and invalid arguments.
-
-## Upstream evidence
-
-The default MCP One commit 9e938ed51bd1aa3ccea94b99a1b045ba446e3eea fails
-compilation/import with IndentationError and cannot collect its original tests.
-The pinned, unmodified dafd1e1ed681a05f2dc7ea0c0e7ab796036c9689 compiles and
-imports. Its original suite returned 6 passed, 2 failed, 8 warnings; both failed
-tests use incomplete AsyncMock HTTP response mocks. Native /mcp discovery on
-that original FastAPI app returned HTTP 404. See the detailed integration audit.
-
-No upstream fixes were made, and those two upstream tests are not counted as
-passing stack tests. CRR and the future scientific domain libraries are untouched.
-
-## Operational findings and limits
-
-The initial Docker run exposed two real issues that were corrected: several
-services concurrently building the same image tag, and a port binding that Docker
-did not publish from an internal-only network. There is now one runtime image
-builder and an edge-only entrance network; regression assertions cover both.
-The local machine lacks buildx, so its successful builds used Docker's classic
-fallback with a deprecation warning. CI explicitly installs buildx.
-
-Only the IPv4 loopback deployment was exercised in Docker. IPv6 endpoint and
-Compose rendering have unit assertions, not a host IPv6 deployment claim.
-Codex CLI 0.154.0 help was checked, but the stack was not registered in the user's
-Codex configuration and no Codex conversation was used as a substitute for SDK E2E.
-The collector is a development console exporter, not persistent trace storage.
-Resources are referenced, not federated by the tools-only edge. Remote/public
-OAuth deployments, distributed rate limiting and scientific result caching are
-outside this MVP. MCP One's own Prometheus response and native protocol support
-still require upstream changes documented in the upgrade path.
-
-## Reproduce
+## Commands executed
 
 ```bash
-make bootstrap
-make lint test test-template
-make test-integration test-e2e
-docker compose --profile core --profile dev --profile observability config --quiet
+python3 scripts/bootstrap.py --update-dependency
+make lint
+.venv/bin/python -m pytest -xq
+make test-template contract-docs
+make down
 make up
 make health tools codex-config
 STACK_ENDPOINT=http://127.0.0.1:8765/mcp make test-e2e
@@ -120,5 +90,26 @@ make fault-check
 docker compose --profile core --profile dev build test-runner
 docker compose --profile core --profile dev run --rm test-runner
 docker build -f templates/python_scientific_mcp/Dockerfile -t example-scientific-mcp:0.1.0 .
-make down
+docker compose --profile core --profile dev --profile observability config --quiet
 ```
+
+The optional collector was enabled by setting
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otel-collector:4318/v1/traces for
+`docker compose --profile core --profile observability up -d --wait` and its
+received batches were checked with `logs`. Codex commands ran in a temporary
+directory, which was deleted afterwards; no user config or credentials were copied.
+The CLI's add/list/get checks prove registration, while SDK E2E proves execution.
+No authenticated Codex model conversation is claimed.
+
+## Release boundaries
+
+MCP One is a 1.0.0rc1 candidate, reflecting the breaking replacement of 0.1 REST.
+Stack configuration is versioned 0.2.0; scientific contract v1 stays unchanged.
+The native migration lives on review branches; their exact remote CI checks and
+commit SHAs accompany the final delivery. A stable 1.0 release is not claimed.
+
+Tools-only federation excludes resource retrieval, tasks, sampling, elicitation,
+continuations, stdio and distributed state. Result caching is absent. Local bearer
+authentication is supported; public OAuth deployment is a separate integration.
+IPv6 rendering has unit tests; Docker deployment was exercised on IPv4 loopback.
+Historical failures and adapter evidence remain isolated under docs/history.

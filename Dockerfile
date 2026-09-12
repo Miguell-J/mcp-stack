@@ -11,13 +11,7 @@ COPY config/ config/
 COPY scripts/ scripts/
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin stack
 USER 10001:10001
-CMD ["uvicorn", "services.gateway_edge.edge:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]
-
-FROM runtime AS mcp-one
-# Original upstream files, taken only from the pinned bootstrap checkout.
-COPY .deps/mcp-one/src/ /opt/mcp-one/src/
-ENV PYTHONPATH=/opt/mcp-one/src
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+CMD ["uvicorn", "services.mock_scientific_mcp.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]
 
 FROM runtime AS development
 USER root
