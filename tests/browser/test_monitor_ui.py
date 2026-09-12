@@ -1,19 +1,59 @@
 """Real browser against the running Compose dashboard; optional browser dependency group."""
 
+import asyncio
 import copy
 import json
 import os
 from pathlib import Path
 
+import httpx
+import httpx2
 import pytest
+from mcp import Client
+from mcp.client.streamable_http import streamable_http_client
 
 playwright = pytest.importorskip("playwright.sync_api")
+# Locator assertions have their own timeout, independent of Page actions. Allow
+# one catalog refresh (30 s), its bounded request and a browser polling interval.
+playwright.expect.set_options(timeout=45000)
 URL = os.environ.get("DASHBOARD_ENDPOINT")
 pytestmark = pytest.mark.skipif(not URL, reason="set DASHBOARD_ENDPOINT to a running dashboard")
 
 
+@pytest.fixture(scope="module")
+def observed_traffic():
+    async def seed():
+        async with asyncio.timeout(45), httpx.AsyncClient(trust_env=False) as http:
+            while True:
+                snapshot = (await http.get(URL + "/api/overview")).json()
+                if (
+                    snapshot["metrics_available"]
+                    and snapshot["status_available"]
+                    and snapshot["gateway"]["ready"]
+                ):
+                    break
+                await asyncio.sleep(0.2)
+            token = os.getenv("MCP_STACK_TOKEN")
+            headers = {"Authorization": "Bearer " + token} if token else {}
+            async with httpx2.AsyncClient(headers=headers, trust_env=False) as mcp_http:
+                async with Client(
+                    streamable_http_client(
+                        os.getenv("STACK_ENDPOINT", snapshot["endpoint"]), http_client=mcp_http
+                    ),
+                    cache=None,
+                ) as client:
+                    assert not (
+                        await client.call_tool("demo.identity_matrix", {"size": 2})
+                    ).is_error
+                    assert (await client.call_tool("demo.contract_error", {})).is_error
+
+    # Seed after the observer's baseline, independently of image/browser install
+    # speed. These are native fixture calls made by tests, never by the dashboard.
+    asyncio.run(seed())
+
+
 @pytest.fixture
-def page():
+def page(observed_traffic):
     with playwright.sync_playwright() as runner:
         browser = runner.chromium.launch(
             executable_path=os.getenv("BROWSER_EXECUTABLE_PATH"), headless=True
@@ -41,8 +81,7 @@ def test_live_dashboard_navigation_search_pause_and_mobile(page, tmp_path):
     playwright.expect(page.locator("#tool-list .tool-card")).to_have_count(5)
     playwright.expect(page.locator("#server-rows .badge.good")).to_have_count(1)
     playwright.expect(page.locator("#server-rows")).to_contain_text("Desabilitado")
-    # Run the native E2E before this suite to seed real observed calls. No synthetic
-    # chart data: latency and error series must contain actual gateway samples.
+    # No synthetic chart data: both series must contain actual gateway samples.
     playwright.expect(page.locator("#latency-chart circle")).not_to_have_count(0)
     playwright.expect(page.locator("#errors-chart circle")).not_to_have_count(0)
     playwright.expect(page.locator("#p95-value")).to_contain_text("≤")

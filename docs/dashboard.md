@@ -134,6 +134,10 @@ and exercise authenticated observations, a real gateway shutdown and recovery.
 Metrics tests distinguish retries from failed requests and cover histogram limits,
 counter resets, per-server aggregation and gaps. No payload capture is used.
 
+The first remote browser run exposed an assertion timeout of five seconds during
+cold-start catalog refresh. Locator assertions now allow the documented discovery
+interval plus request/poll time; this does not change production refresh semantics.
+
 ```bash
 make lint test test-integration
 make up
