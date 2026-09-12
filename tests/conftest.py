@@ -40,7 +40,8 @@ class LiveStack:
             circuit_breaker_reset_seconds=1,
         )
         self.config = StackConfig.model_validate(data)
-        self.url = f"http://127.0.0.1:{self.ports['one']}/mcp"
+        self.admin_url = f"http://127.0.0.1:{self.ports['one']}"
+        self.url = self.admin_url + "/mcp"
         config_dir = directory / "config"
         (config_dir / "servers.d").mkdir(parents=True)
         servers = data.pop("servers")

@@ -13,7 +13,7 @@ async def refresh(live_stack):
     # The hub coalesces refresh requests with a one-second minimum interval.
     await asyncio.sleep(1.05)
     async with httpx.AsyncClient() as http:
-        return await http.post(live_stack.config.gateway.one_url + "/refresh")
+        return await http.post(live_stack.admin_url + "/refresh")
 
 
 @pytest.mark.parametrize("mode", ["duplicate", "schema", "external_ref", "response"])

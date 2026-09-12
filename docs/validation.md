@@ -1,6 +1,7 @@
 # Native stack validation
 
-Executed 2026-09-11, Linux x86_64, host Python 3.14.3 and containers Python 3.12.12.
+Executed 2026-09-11 and rechecked 2026-09-12, Linux x86_64, host Python 3.14.3
+and containers Python 3.12.12.
 The old four-process deployment was stopped and its gateway-edge/legacy-bridge
 containers removed. The actual replacement path is:
 
@@ -38,6 +39,12 @@ comes from Starlette's deprecated AnyIO BlockingPortal alias, not a deprecated M
 API in this project. Restricted sandbox IPC stalled the first template attempt;
 it was interrupted and rerun successfully with local IPC available. Docker used
 its classic builder fallback because the local host lacks buildx; CI installs it.
+
+The first remote stack integration run exposed test references to the removed
+gateway.one_url config field after the final legacy-field cleanup. The fixtures
+now derive their admin URL from the actual test listener; the native gateway/pin
+did not change. That failed run is retained in Actions history, and the complete
+suite was rerun before publishing the correction.
 
 `make health` reports `mcp-stack ready` and `mock-scientific-mcp ONLINE`.
 `make tools` obtains native tools/list and returns demo.artifact,
