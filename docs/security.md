@@ -1,7 +1,8 @@
 # Security
 
-The default deployment serves one trusted local operator. Only MCP One publishes
-127.0.0.1 and joins the entrance network. Scientific containers stay on an internal
+The default deployment serves one trusted local operator. MCP One and the optional
+dashboard publish separate ports on 127.0.0.1 and join the entrance network.
+Scientific containers stay on an internal
 network with no published ports. Containers run uid/gid 10001, drop all capabilities,
 use no-new-privileges/read-only source and bounded tmpfs, and mount no Docker socket.
 
@@ -24,3 +25,13 @@ Scientific contracts keep their own finite-number/inline-size checks in adapters
 MCP One never imports those models. Artifact references are opaque; they do not
 permit the gateway to fetch arbitrary locations. Result caching is absent.
 Use namespaced infrastructure errors without fabricating scientific diagnostics.
+
+The [dashboard](dashboard.md) is a local read-only observer, without a login flow.
+Any local user able to connect can see inventory, tool names/descriptions/schemas and aggregate
+metrics. Keep it disabled on shared hosts where this metadata must be private. It
+does not expose tokens, full config, arguments, results, logs or artifacts. Gateway
+admin/MCP bearer credentials remain exclusively in the backend; downstream secrets
+are not forwarded to it. Its fixed gateway URL is not a viewer-controlled proxy.
+Host/Origin/fetch-site checks mitigate browser cross-origin access and DNS rebinding;
+CSP blocks inline scripts, external assets and framing. Untrusted descriptions are
+inserted as text. This is not an authorization boundary against other local processes.

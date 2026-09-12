@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>MCP Stack · Monitor</title>
+  <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+  <script src="/assets/theme.js"></script>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a href="#overview" class="brand"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>mcp-stack<small>LOCAL CONTROL ROOM</small></span></a>
+    <div class="nav-label">WORKSPACE</div>
+    <nav aria-label="Navegação principal">
+      <a href="#overview" class="nav-link active"><span aria-hidden="true">◫</span> Visão geral</a>
+      <a href="#servers" class="nav-link"><span aria-hidden="true">▤</span> Servidores <b id="nav-count">—</b></a>
+      <a href="#catalog" class="nav-link"><span aria-hidden="true">⌘</span> Catálogo MCP</a>
+      <a href="#telemetry" class="nav-link"><span aria-hidden="true">⌁</span> Telemetria</a>
+    </nav>
+    <div class="sidebar-note"><span class="dot"></span> Ambiente local<p>Observação de infraestrutura.<br>Execução via MCP nativo.</p></div>
+    <div class="sidebar-bottom"><span class="avatar">M</span><span>Scientific workspace<small id="stack-version">mcp-stack</small></span><span class="lock" title="Somente leitura">⌑</span></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Monitor</strong></div><div class="topbar-right"><button id="theme" class="button theme-button" aria-label="Ativar modo escuro">◐ <span id="theme-label">Escuro</span></button><span class="local-tag">localhost</span><span class="mode-label">Somente leitura</span></div></header>
+    <main>
+      <section id="overview" class="intro">
+        <div><div class="eyebrow">OPERAÇÃO DA STACK</div><h1>Visão geral</h1><p>Um lugar para acompanhar cada conexão.</p></div>
+        <div class="controls"><span id="live" class="live muted"><span class="dot"></span> Conectando</span><button id="pause" class="button subtle" aria-pressed="false">Pausar</button><button id="refresh" class="button"><span aria-hidden="true">↻</span> Atualizar</button></div>
+      </section>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <div class="summary-grid">
+        <article class="summary"><div class="summary-label">Gateway <span class="mini-icon">⇄</span></div><div id="gateway-value" class="summary-value word">Aguardando</div><div id="gateway-note" class="summary-note">Consultando MCP One</div></article>
+        <article class="summary"><div class="summary-label">Servidores aptos <span class="mini-icon">▤</span></div><div id="servers-value" class="summary-value">—</div><div id="servers-note" class="summary-note">Prontos para rotear</div></article>
+        <article class="summary"><div class="summary-label">Tools no catálogo <span class="mini-icon">⌘</span></div><div id="tools-value" class="summary-value">—</div><div id="tools-note" class="summary-note">Catálogo agregado</div></article>
+        <article class="summary"><div class="summary-label">Chamadas observadas <span class="mini-icon">↗</span></div><div id="calls-value" class="summary-value">—</div><div class="summary-note">Contador do processo MCP One</div></article>
+      </div>
+      <div class="main-grid">
+        <section class="panel activity" id="telemetry">
+          <div class="panel-heading"><div><h2>Atividade do gateway</h2><p>Chamadas por minuto · intervalo entre coletas</p></div><span id="sample-count" class="quiet-tag">Até 120 amostras</span></div>
+          <div class="chart-stat"><strong id="rate-value">—</strong><span>calls/min</span><span class="chart-legend"><i></i> Tráfego MCP</span></div>
+          <div class="chart-wrap"><svg id="chart" viewBox="0 0 640 160" role="img" aria-label="Histórico de chamadas por minuto"></svg><div id="chart-empty">Aguardando duas coletas de métricas reais…</div></div>
+          <div class="chart-axis"><span id="chart-start">—</span><span id="chart-end">Agora</span></div>
+          <div class="activity-footer"><span><i class="dot"></i> Métricas do MCP One</span><span id="metrics-time">Sem coleta</span></div>
+        </section>
+        <section class="panel topology"><div class="panel-heading"><div><h2>Caminho nativo</h2><p>Sem adaptadores de protocolo</p></div><span class="native-tag">MCP</span></div>
+          <div class="flow-node client-node"><span class="node-symbol">⌘</span><div><strong>Codex / MCP SDK</strong><small>Cliente MCP</small></div></div>
+          <div class="connector">↓ <span>Streamable HTTP</span></div>
+          <div class="flow-node gateway-node"><img src="/assets/mark.svg" width="32" height="32" alt=""><div><strong>MCP One</strong><small>Registry · router · policy</small></div><span id="topology-dot" class="dot muted"></span></div>
+          <div class="connector">↓ <span>MCP nativo</span></div>
+          <div class="flow-node"><span class="node-symbol">▤</span><div><strong id="topology-servers">Servidores downstream</strong><small id="topology-tools">Catálogo agregado</small></div></div>
+          <div class="endpoint"><span>ENDPOINT PARA CLIENTES</span><div><code id="endpoint">—</code><button id="copy" aria-label="Copiar endpoint MCP" title="Copiar endpoint">⧉</button></div></div>
+        </section>
+      </div>
+      <section id="performance" class="performance-grid" aria-label="Gráficos de desempenho">
+        <article class="panel performance-panel"><div class="panel-heading"><div><h2>Latência das chamadas</h2><p>Média das chamadas concluídas entre coletas</p></div><span class="quiet-tag">milissegundos</span></div><div class="chart-stat"><strong id="interval-latency">—</strong><span>ms / chamada</span><span class="chart-legend">p95 do intervalo: <b id="interval-p95">—</b></span></div><div class="chart-wrap"><svg id="latency-chart" role="img" aria-label="Histórico da latência média em milissegundos"></svg><div id="latency-chart-empty" class="chart-empty">Sem novas chamadas neste histórico.</div></div><div class="chart-axis"><span id="latency-chart-start">—</span><span id="latency-chart-end">Agora</span></div></article>
+        <article class="panel performance-panel"><div class="panel-heading"><div><h2>Chamadas sem sucesso</h2><p>Erros, cancelamentos e rejeições por intervalo</p></div><span class="quiet-tag">percentual</span></div><div class="chart-stat"><strong id="error-rate-value">—</strong><span>% das chamadas</span></div><div class="chart-wrap"><svg id="errors-chart" role="img" aria-label="Histórico da porcentagem de chamadas sem sucesso"></svg><div id="errors-chart-empty" class="chart-empty">Sem novas chamadas neste histórico.</div></div><div class="chart-axis"><span id="errors-chart-start">—</span><span id="errors-chart-end">Agora</span></div></article>
+      </section>
+      <section id="servers" class="panel servers-panel">
+        <div class="panel-heading"><div><h2>Servidores <span id="server-count" class="count">—</span></h2><p>Inventário dos manifestos e estado observado pelo gateway</p></div><span class="quiet-tag">Config as code</span></div>
+        <div class="table-scroll"><table><thead><tr><th>Servidor / namespace</th><th>Estado</th><th>Tools</th><th>Chamadas</th><th>Média</th><th>Sem sucesso</th><th>Circuito</th><th>Catálogo</th></tr></thead><tbody id="server-rows"><tr><td colspan="8" class="empty">Carregando inventário…</td></tr></tbody></table></div>
+        <div class="panel-foot">Servidores desabilitados precisam de um adaptador MCP e configuração antes de entrar em operação.</div>
+      </section>
+      <section class="operational-grid" aria-label="Indicadores operacionais">
+        <article class="metric-box"><span>Latência média</span><strong id="latency-value">—</strong><small>Chamadas do processo MCP One</small></article>
+        <article class="metric-box"><span>p95 · limite superior</span><strong id="p95-value">—</strong><small>Estimativa dos buckets Prometheus</small></article>
+        <article class="metric-box"><span>Erros de domínio</span><strong id="domain-value">—</strong><small>isError retornado pela tool</small></article>
+        <article class="metric-box"><span>Falhas de infraestrutura</span><strong id="infra-value">—</strong><small id="timeout-value">Timeouts: —</small></article>
+        <article class="metric-box"><span>Atualizações do registry</span><strong id="refresh-value">—</strong><small id="cache-value">Cache de catálogo: —</small></article>
+      </section>
+      <section id="catalog" class="panel catalog-panel">
+        <div class="panel-heading"><div><h2>Catálogo MCP</h2><p id="catalog-note">Discovery pelo SDK oficial · somente leitura</p></div><label class="search"><span aria-hidden="true">⌕</span><input type="search" id="search" placeholder="Buscar tool ou descrição…" aria-label="Buscar ferramentas"></label></div>
+        <div id="tool-list" class="tool-list"><p class="empty">Aguardando descoberta MCP…</p></div>
+        <div class="panel-foot">Este painel não executa tools nem acessa argumentos, resultados ou artifacts.</div>
+      </section>
+      <footer><span><span class="dot"></span> MCP nativo na entrada e na saída</span><span id="updated">Aguardando primeira observação</span></footer>
+      <noscript><p class="notice">Ative JavaScript para consultar os sinais da stack. O endpoint MCP funciona independentemente desta tela.</p></noscript>
+    </main>
+  </div>
+  <dialog id="contract-dialog" class="contract-dialog" aria-labelledby="contract-title" aria-describedby="contract-description">
+    <div class="contract-header"><div><div class="eyebrow">CONTRATO MCP</div><h2 id="contract-title">Contrato da ferramenta</h2></div><button id="contract-close" class="button icon-button" aria-label="Fechar contrato">×</button></div>
+    <p id="contract-description" class="contract-description">Schemas publicados pelo servidor MCP.</p>
+    <div class="contract-controls"><div role="tablist" aria-label="Schema do contrato"><button id="tab-output" role="tab" aria-selected="true" aria-controls="schema-panel" class="schema-tab">Resposta</button><button id="tab-input" role="tab" aria-selected="false" aria-controls="schema-panel" tabindex="-1" class="schema-tab">Entrada</button></div><span class="quiet-tag">JSON Schema 2020-12</span></div>
+    <div id="contract-status" class="contract-status" role="status">Carregando contrato…</div>
+    <div id="schema-panel" role="tabpanel" aria-labelledby="tab-output" tabindex="0"><pre><code id="contract-json">Carregando…</code></pre></div>
+    <p id="contract-help" class="contract-help">outputSchema descreve structuredContent de respostas bem-sucedidas. Erros usam isError; content e _meta fazem parte do envelope MCP.</p>
+    <div class="contract-footer"><span id="contract-observed">—</span><button id="contract-copy" class="button" disabled>Copiar JSON</button></div>
+  </dialog>
+</body>
+</html>

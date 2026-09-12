@@ -18,7 +18,7 @@ def test_current_config_and_render_reproducibility(tmp_path):
     assert first.startswith(b"# GENERATED FILE")
     services = compose_config(config)["services"]
     exposed = {k for k, v in services.items() if v.get("ports")}
-    assert exposed == {"mcp-one"}
+    assert exposed == {"mcp-one", "dashboard"}
     assert services["mcp-one"]["ports"] == ["127.0.0.1:8765:8000"]
     assert services["mcp-one"]["build"]["target"] == "runtime"
     assert compose_config(config)["networks"]["scientific"]["internal"]
@@ -26,10 +26,10 @@ def test_current_config_and_render_reproducibility(tmp_path):
     assert all(
         "entrance" not in service["networks"]
         for name, service in services.items()
-        if name != "mcp-one"
+        if name not in {"mcp-one", "dashboard"}
     )
     runtime_builders = [
-        s for s in services.values() if s.get("image") == "mcp-stack:0.2.0" and "build" in s
+        s for s in services.values() if s.get("image") == "mcp-stack:0.3.0" and "build" in s
     ]
     assert len(runtime_builders) == 1
     assert "cache" not in one_config(config)

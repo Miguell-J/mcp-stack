@@ -2,7 +2,7 @@
 
 Composition and operation of independent scientific MCP servers. MCP One provides
 the native gateway, registry, routing and failure policy. The stack owns manifests,
-scientific contracts, fixtures and deployment. Version **0.2.0**, Scientific MCP
+scientific contracts, fixtures and deployment. Version **0.3.0**, Scientific MCP
 Contract **v1**, MCP **2026-07-28**, official Python SDK **2.2.0**.
 
 ```text
@@ -29,6 +29,13 @@ make tools
 make test-e2e
 make codex-config
 ```
+
+Open **[the local monitor](http://127.0.0.1:8766)** after `make up`. It shows gateway
+readiness, server/circuit states, a searchable native tool catalog and live metrics.
+Light/dark themes, request/response schema modals, throughput/latency/error charts
+and per-server performance indicators are included.
+The dashboard is read-only; disabled library manifests appear as pending integrations.
+See [Dashboard](docs/dashboard.md) for configuration, security and signal semantics.
 
 Endpoint: `http://127.0.0.1:8765/mcp`, directly served by MCP One. Expected tools:
 demo.echo, demo.identity_matrix, demo.contract_error, demo.slow and demo.artifact.

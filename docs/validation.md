@@ -105,8 +105,10 @@ No authenticated Codex model conversation is claimed.
 
 MCP One is a 1.0.0rc1 candidate, reflecting the breaking replacement of 0.1 REST.
 Stack configuration is versioned 0.2.0; scientific contract v1 stays unchanged.
-The native migration lives on review branches; their exact remote CI checks and
-commit SHAs accompany the final delivery. A stable 1.0 release is not claimed.
+The native migration was merged through MCP One PR 6 and mcp-stack PR 1. Main-branch
+CI passed for both repositories. MCP One published `v1.0.0-rc.1`; a stable 1.0 release
+is not claimed. This record describes the native migration at stack 0.2.0; the
+subsequent stack 0.3.0 adds the optional local dashboard without changing the gateway pin.
 
 Tools-only federation excludes resource retrieval, tasks, sampling, elicitation,
 continuations, stdio and distributed state. Result caching is absent. Local bearer

@@ -2,7 +2,7 @@
 
 | Layer | Target |
 | --- | --- |
-| mcp-stack | 0.2.0 |
+| mcp-stack | 0.3.0 |
 | MCP | 2026-07-28 |
 | Official Python SDK/types | 2.2.0 |
 | MCP One | native 1.0 candidate; immutable commit in config/stack.yaml |

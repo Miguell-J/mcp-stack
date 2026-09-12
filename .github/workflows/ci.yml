@@ -47,6 +47,9 @@ jobs:
       - run: make up
       - run: make health tools
       - run: STACK_ENDPOINT=http://127.0.0.1:8765/mcp make test-e2e
+      - run: .venv/bin/uv sync --locked --group browser
+      - run: .venv/bin/playwright install --with-deps chromium
+      - run: DASHBOARD_ENDPOINT=http://127.0.0.1:8766 .venv/bin/python -m pytest tests/browser -q
       - run: make fault-check
       - run: docker compose --profile core --profile dev build test-runner
       - run: docker compose --profile core --profile dev run --rm test-runner

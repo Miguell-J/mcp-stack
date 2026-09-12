@@ -17,6 +17,13 @@ never payloads or arbitrary users. GET /status supplies administrative diagnosti
 Health is lifecycle liveness; readiness requires useful permitted routes while
 allowing partial degradation. No network checks run on Prometheus scrapes.
 
+The default [local dashboard](dashboard.md) at `http://127.0.0.1:8766` presents those
+signals with a bounded in-memory history. It distinguishes current observations,
+stale snapshots, disabled servers and routing readiness. Its independent health
+probe stays healthy during gateway outages so the failure remains visible. The UI
+needs neither a Prometheus server nor the optional OTel collector. It does not
+provide Docker/host inspection, log aggregation or stored trace exploration.
+
 Set OTEL_EXPORTER_OTLP_TRACES_ENDPOINT to the optional collector's HTTP traces
 endpoint to export; otherwise no trace export occurs. The development collector
 is not durable telemetry storage. Use docker compose --profile core logs --tail=100

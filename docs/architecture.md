@@ -8,16 +8,21 @@ flowchart TD
     A --> L[Independent domain library]
     M[Stack manifests] --> G[Generated native config + Compose]
     G --> H
+    O[Local operator :8766] --> D[Read-only stack dashboard]
+    D -. status / metrics / native tools/list .-> H
 ```
 
 | Component | Responsibility |
 | --- | --- |
 | mcp-stack | composition, manifests, contract package, operation, integration tests |
+| Local dashboard | bounded read-only gateway observations, inventory and presentation |
 | MCP One | native MCP edge/client, registry, routing, policy, retry/circuit safety, telemetry |
 | Scientific MCP adapter | library invocation, typed schemas, ScientificResult and domain errors |
 | Domain library | scientific meaning and algorithms, independent of MCP |
 
-The normal core deployment has two processes: MCP One and the scientific mock.
+The default core deployment has three services: MCP One, the scientific mock and
+the local monitoring dashboard. The dashboard is outside the MCP execution path
+and can be disabled with `dashboard.enabled: false`.
 Additional backends are added by manifest. There are no REST tool adapters or
 legacy result envelopes. MCP One builds its catalog using native discovery and
 returns CallToolResult unchanged except for additive gateway metadata.
@@ -28,8 +33,9 @@ Native domains carry data/context/diagnostics/provenance; gateway tracing stays
 in its own _meta namespace. The scientific contract package depends only on
 Pydantic. MCP One does not import that package or interpret mathematical data.
 
-Only the hub joins entrance and internal scientific networks and publishes a
-loopback port. Backends remain on the internal network. ADR 0007 supersedes the
+The hub and dashboard join entrance and internal scientific networks and publish
+separate loopback ports (8765 and 8766). Backends remain on the internal network.
+ADR 0008 defines the optional read-only monitoring service. ADR 0007 supersedes the
 old four-process compatibility architecture. Historical audits remain explicitly
 archived under docs/history, not operational instructions.
 
