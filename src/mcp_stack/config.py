@@ -43,7 +43,7 @@ class Contract(ConfigModel):
 
 
 class Container(ConfigModel):
-    image: str = "mcp-stack:0.2.0"
+    image: str = "mcp-stack:0.3.0"
     command: list[str] = Field(min_length=1)
     port: int = Field(default=8080, ge=1024, le=65535)
     profile: Literal["core", "dev"] = "core"
@@ -101,15 +101,34 @@ class Gateway(ConfigModel):
         return f"http://{host}:{self.port}/mcp"
 
 
+class Dashboard(ConfigModel):
+    enabled: bool = True
+    bind: Literal["127.0.0.1", "::1"] = "127.0.0.1"
+    port: int = Field(default=8766, ge=1024, le=65535)
+    poll_seconds: float = Field(default=5, ge=2, le=60)
+    timeout_seconds: float = Field(default=3, ge=0.1, le=15)
+
+    @property
+    def url(self) -> str:
+        host = f"[{self.bind}]" if ":" in self.bind else self.bind
+        return f"http://{host}:{self.port}"
+
+
 class StackConfig(ConfigModel):
     version: Literal[1] = 1
     protocol: Literal["2026-07-28"] = "2026-07-28"
     mcp_one: Dependency
     gateway: Gateway = Field(default_factory=Gateway)
+    dashboard: Dashboard = Field(default_factory=Dashboard)
     servers: list[ServerManifest] = Field(default_factory=list, max_length=100)
 
     @model_validator(mode="after")
     def unique_servers(self) -> Self:
+        if self.dashboard.enabled and (self.dashboard.bind, self.dashboard.port) == (
+            self.gateway.bind,
+            self.gateway.port,
+        ):
+            raise ValueError("dashboard and gateway listeners must differ")
         for key in ("id", "namespace"):
             values = [getattr(s, key) for s in self.servers]
             if len(values) != len(set(values)):
@@ -119,6 +138,7 @@ class StackConfig(ConfigModel):
                 "mcp-one",
                 "test-runner",
                 "otel-collector",
+                "dashboard",
             }:
                 raise ValueError("server ID is reserved for infrastructure")
             if s.enabled and s.container and s.container.profile != "core":

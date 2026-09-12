@@ -73,7 +73,7 @@ def probe(url: str) -> dict[str, Any]:
 def compose_config(config: StackConfig) -> dict[str, Any]:
     bind = f"[{config.gateway.bind}]" if ":" in config.gateway.bind else config.gateway.bind
     common: dict[str, Any] = {
-        "image": "mcp-stack:0.2.0",
+        "image": "mcp-stack:0.3.0",
         "profiles": ["core"],
         "networks": ["scientific"],
         "user": "10001:10001",
@@ -121,19 +121,45 @@ def compose_config(config: StackConfig) -> dict[str, Any]:
     }
     if config.mcp_one.image:
         services["mcp-one"].pop("build")
-    # Exactly one builder for the shared scientific fixture runtime.
-    for server in config.enabled_servers:
-        if server.container and server.container.image == common["image"]:
-            services[server.id]["build"] = {
+    if config.dashboard.enabled:
+        dashboard = config.dashboard
+        dashboard_bind = f"[{dashboard.bind}]" if ":" in dashboard.bind else dashboard.bind
+        dashboard_env = {"STACK_CONFIG": "/app/config/stack.yaml"}
+        for key in (config.gateway.admin_token_env, config.gateway.token_env):
+            if key:
+                dashboard_env[key] = "${" + key + ":?MCP token is required}"
+        services["dashboard"] = {
+            **common,
+            "networks": ["entrance", "scientific"],
+            "ports": [f"{dashboard_bind}:{dashboard.port}:8080"],
+            "environment": dashboard_env,
+            "volumes": ["./config:/app/config:ro"],
+            "command": [
+                "uvicorn",
+                "services.dashboard.app:create_app",
+                "--factory",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8080",
+                "--no-access-log",
+            ],
+            "healthcheck": probe("http://127.0.0.1:8080/health"),
+            "pull_policy": "never",
+        }
+    # Exactly one builder, including deployments with only external downstreams.
+    for service in services.values():
+        if service["image"] == common["image"]:
+            service["build"] = {
                 "context": ".",
                 "dockerfile": "Dockerfile",
                 "target": "runtime",
             }
-            services[server.id].pop("pull_policy", None)
+            service.pop("pull_policy", None)
             break
     services["test-runner"] = {
         **common,
-        "image": "mcp-stack-dev:0.2.0",
+        "image": "mcp-stack-dev:0.3.0",
         "build": {
             "context": ".",
             "dockerfile": "Dockerfile",

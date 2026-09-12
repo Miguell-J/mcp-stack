@@ -4,7 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "image": {
-          "default": "mcp-stack:0.2.0",
+          "default": "mcp-stack:0.3.0",
           "title": "Image",
           "type": "string"
         },
@@ -56,6 +56,48 @@
         }
       },
       "title": "Contract",
+      "type": "object"
+    },
+    "Dashboard": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "bind": {
+          "default": "127.0.0.1",
+          "enum": [
+            "127.0.0.1",
+            "::1"
+          ],
+          "title": "Bind",
+          "type": "string"
+        },
+        "port": {
+          "default": 8766,
+          "maximum": 65535,
+          "minimum": 1024,
+          "title": "Port",
+          "type": "integer"
+        },
+        "poll_seconds": {
+          "default": 5,
+          "maximum": 60,
+          "minimum": 2,
+          "title": "Poll Seconds",
+          "type": "number"
+        },
+        "timeout_seconds": {
+          "default": 3,
+          "maximum": 15,
+          "minimum": 0.1,
+          "title": "Timeout Seconds",
+          "type": "number"
+        }
+      },
+      "title": "Dashboard",
       "type": "object"
     },
     "Dependency": {
@@ -344,6 +386,9 @@
     },
     "gateway": {
       "$ref": "#/$defs/Gateway"
+    },
+    "dashboard": {
+      "$ref": "#/$defs/Dashboard"
     },
     "servers": {
       "items": {

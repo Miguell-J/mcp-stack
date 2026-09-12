@@ -15,7 +15,7 @@ contract:
 metadata:
   library: mock-fixture
 container:
-  image: mcp-stack:0.2.0
+  image: mcp-stack:0.3.0
   command: [uvicorn, services.mock_scientific_mcp.app:create_app, --factory, --host, 0.0.0.0, --port, '8080', --no-access-log]
   port: 8080
   profile: core

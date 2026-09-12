@@ -82,3 +82,9 @@ only in their own processes, and must restore/stop everything in finally blocks.
   designed and tested. Discovery cache hints follow MCP's private TTL semantics.
 - Update README/adding-a-server/compatibility documentation when integrations change.
 - Do not modify ~/.codex/config.toml automatically. The generator prints only.
+- Keep the local dashboard read-only and outside the tool execution path. Read
+  gateway observations; do not recreate registry/circuit policy or inspect Docker.
+- Preserve schemas in contract modals. Never capture scientific request/response
+  payloads for monitoring by default. Browser text must not execute as HTML.
+- Performance charts use real counter/histogram observations. Mark stale data and
+  estimated percentiles; retry-attempt failures are not failed-call percentages.

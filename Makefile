@@ -16,6 +16,8 @@ render: validate
 up: render
 	$(PY) scripts/check_dependency.py
 	$(COMPOSE) up --build -d --wait --wait-timeout 180
+	$(PY) scripts/health.py --wait-seconds 60
+	$(PY) scripts/dashboard_url.py
 down:
 	docker compose --profile core --profile dev --profile observability down --remove-orphans
 restart:
