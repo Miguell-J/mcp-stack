@@ -74,3 +74,7 @@ bootstrap/build override. Final validation must use the pinned clean checkout.
 [Observability](docs/observability.md) · [Security](docs/security.md) ·
 [Troubleshooting](docs/troubleshooting.md) · [Scientific contract](docs/contracts/scientific-result-v1.md) ·
 [Validation](docs/validation.md).
+
+[Development validation](docs/development-validation.md) documents adversarial
+schema/model checks, repeated scientific error safety, optional Inspector usage
+and the opt-in `scientific-contracts` / `stack-integration` skills.

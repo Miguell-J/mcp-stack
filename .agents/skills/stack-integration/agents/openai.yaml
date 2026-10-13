@@ -1,0 +1,6 @@
+interface:
+  display_name: "stack-integration"
+  short_description: "Stack integration checks"
+  default_prompt: "Use $stack-integration for this repository and report actual validation evidence."
+policy:
+  allow_implicit_invocation: false

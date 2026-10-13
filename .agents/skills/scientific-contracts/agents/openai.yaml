@@ -1,0 +1,6 @@
+interface:
+  display_name: "scientific-contracts"
+  short_description: "Scientific contracts checks"
+  default_prompt: "Use $scientific-contracts for this repository and report actual validation evidence."
+policy:
+  allow_implicit_invocation: false
