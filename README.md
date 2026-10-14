@@ -74,3 +74,6 @@ bootstrap/build override. Final validation must use the pinned clean checkout.
 [Observability](docs/observability.md) · [Security](docs/security.md) ·
 [Troubleshooting](docs/troubleshooting.md) · [Scientific contract](docs/contracts/scientific-result-v1.md) ·
 [Validation](docs/validation.md).
+
+[Cordis orchestration integration](docs/cordis.md) explains explicit capability
+enrollment through the existing gateway without changing dependency pins.
