@@ -1,0 +1,596 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cordis.local/contracts/dashboard-snapshot/v1",
+  "title": "Cordis metadata-only dashboard snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "total_runs",
+    "exported_runs",
+    "truncated",
+    "runs"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_runs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exported_runs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "truncated": {
+      "type": "boolean"
+    },
+    "runs": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/Run"
+      }
+    }
+  },
+  "$defs": {
+    "Task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "owner_role",
+        "dependencies",
+        "status",
+        "write_scope"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "owner_role": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "dependencies": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "write_scope": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          }
+        }
+      }
+    },
+    "Attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "task_id",
+        "provider",
+        "status",
+        "plan_revision",
+        "work_revision",
+        "started_at",
+        "ended_at",
+        "duration_ms"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "task_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "provider": {
+          "enum": [
+            "codex",
+            "claude",
+            null
+          ]
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "plan_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "started_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "ended_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "duration_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "Gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "status",
+        "current",
+        "actor_id",
+        "actor_role",
+        "plan_revision",
+        "work_revision",
+        "evidence"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "current": {
+          "type": "boolean"
+        },
+        "actor_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "actor_role": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "plan_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_revision": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        }
+      }
+    },
+    "Event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "at",
+        "type",
+        "actor_id",
+        "actor_role",
+        "evidence"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "at": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "actor_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "actor_role": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        }
+      }
+    },
+    "ToolCall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempt_id",
+        "task_id",
+        "capability",
+        "outcome",
+        "duration_ms",
+        "plan_revision",
+        "work_revision"
+      ],
+      "properties": {
+        "attempt_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "task_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "capability": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "outcome": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "duration_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "plan_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "Usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_tokens",
+        "output_tokens",
+        "cost_usd",
+        "duration_ms"
+      ],
+      "properties": {
+        "input_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "output_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "cost_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "duration_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "ref",
+        "kind",
+        "sha256",
+        "bytes",
+        "available",
+        "verification"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "ref": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "verification": {
+          "enum": [
+            "registration_only",
+            "verified",
+            "unavailable"
+          ]
+        }
+      }
+    },
+    "Truncated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tasks",
+        "attempts",
+        "gates",
+        "history",
+        "evidence",
+        "tool_calls",
+        "failures"
+      ],
+      "properties": {
+        "tasks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "history": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failures": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "Run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "state",
+        "status",
+        "plan_revision",
+        "work_revision",
+        "profile",
+        "available",
+        "error",
+        "tasks",
+        "attempts",
+        "gates",
+        "history",
+        "tool_calls",
+        "usage",
+        "evidence",
+        "truncated",
+        "truncated_counts",
+        "failures"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "state": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "plan_revision": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "work_revision": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "profile": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "tasks": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/Task"
+          }
+        },
+        "attempts": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/Attempt"
+          }
+        },
+        "gates": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/Gate"
+          }
+        },
+        "history": {
+          "type": "array",
+          "maxItems": 80,
+          "items": {
+            "$ref": "#/$defs/Event"
+          }
+        },
+        "tool_calls": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/ToolCall"
+          }
+        },
+        "usage": {
+          "$ref": "#/$defs/Usage"
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "truncated_counts": {
+          "$ref": "#/$defs/Truncated"
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/Failure"
+          }
+        }
+      }
+    },
+    "Failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "task_id",
+        "code",
+        "category",
+        "route",
+        "retry_authorized"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "route": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "task_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "retry_authorized": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,40 @@
 # Native stack validation
 
+## Cordis dashboard increment — 2026-10-19
+
+Existing source `main` extended with a read-only Cordis metadata observer and UI.
+No MCP One changes or dependency pin migration. The exporter schema and bundled
+consumer schema are byte-identical (SHA-256
+`67a1abcdf23a174ea383314240a0be7362c1340ed4e00914969528a3caba8623`).
+
+| Check | Observed result |
+| --- | --- |
+| `make lint test test-template` after final cleanup | Ruff/format/mypy passed, 84 unit/contract + 1 template passed |
+| Native integration | 9 passed |
+| Native isolated E2E | 6 passed |
+| Real Chromium desktop/mobile UI | 3 passed |
+| Independent observer verification | 16 passed |
+| Render and Compose config | Passed |
+| Real Cordis delivery export → actual observer and APIs | Passed; HTTP 200, metadata-only, write/traversal/origin rejection |
+
+The actual localhost source app at port 8767 was additionally checked using the
+controlled Cordis delivery run: current snapshot, completed task/attempt, details,
+evidence metadata, mobile width and no JavaScript errors. Gateway readings use
+the existing local Stack; no deployed service was restarted. The Cordis run uses
+explicit controlled provider/reviewer fixtures with zero paid model calls.
+
+Independent plan/integration/final review accepted the bounded implementation.
+The observer reads only the dedicated export, retains visibly stale last-valid
+metadata on error and adds no approval/execution/file-serving endpoints. One
+Starlette/AnyIO dependency deprecation warning remains. Relevant async/socket
+tests required authorized execution outside the sandbox due to a separately
+reproduced thread wakeup limitation. Local evidence:
+`/tmp/cordis-delivery-dashboard-validation/`, including `stack-root-final.log`,
+`stack-browser.log`, `real-export-stack-api.json`, `actual-localhost-browser.json`
+and desktop/mobile screenshots. Remote CI is checked separately after push.
+
+## Historical native deployment validation
+
 Executed 2026-09-11 and rechecked 2026-09-12, Linux x86_64, host Python 3.14.3
 and containers Python 3.12.12.
 The old four-process deployment was stopped and its gateway-edge/legacy-bridge

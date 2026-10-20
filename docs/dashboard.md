@@ -33,6 +33,8 @@ dashboard:
   port: 8766       # must differ from the gateway listener
   poll_seconds: 5  # 2–60; interval after each observation completes
   timeout_seconds: 3  # 0.1–15; per observation operation
+  cordis_snapshot_dir: null  # optional absolute host export directory
+  cordis_stale_seconds: 60   # 5–3600; age of Cordis generated_at
 ```
 
 The generated JSON Schema includes these fields. `enabled: false` omits the service;
@@ -111,10 +113,71 @@ the polling lifecycle; shutdown cancels it and closes both HTTP pools. The conta
 runs non-root with a read-only filesystem, dropped capabilities and no Docker socket.
 
 The panel does **not** inspect host CPU/RAM, container resource use, logs, stored
-traces, payloads, artifacts or scientific semantics. Use Compose logs and the
+traces, payloads, artifact contents or scientific semantics. Use Compose logs and the
 optional OTel collector for their respective signals. External scientific libraries
 still need native MCP adapters with concrete schemas and manifest registration;
 installing a library alone does not expose its functions as MCP tools.
+
+## Cordis orchestration observations
+
+Cordis is optional. The gateway and catalog remain usable when no export is
+configured, a source is missing, or Cordis is unavailable. In the existing panel,
+the **Cordis** navigation item opens a run selector, task dependency graph, task
+owner/scope details, attempts/providers, failure codes and routing, current versus
+invalidated gates, audited events, observed tool receipts and usage. Each task is
+a keyboard-accessible button; its incoming dependencies are listed explicitly.
+Missing token, cost or timing observations say **Desconhecido**, rather than zero.
+An admitted call with no known terminal result remains uncertain; retries and
+gateway counters are separate observations.
+
+Generate a sanitized export with the Cordis CLI. Use a directory dedicated to
+metadata, accessible by dashboard UID 10001 when using Compose:
+
+```bash
+cordis --runs-dir /absolute/operator/runs dashboard export \
+  --output-dir /absolute/operator/cordis-export --run RUN_ID --watch
+```
+
+Configure `dashboard.cordis_snapshot_dir: /absolute/operator/cordis-export`, then
+use the normal render/deployment workflow. Stack mounts only that directory at
+`/app/cordis` with a read-only bind and `create_host_path: false`; it does not
+mount the run store. The directory mount lets atomic `snapshot.json` replacement
+become visible without remounting an old file inode. Missing host directories
+must be provisioned explicitly by the operator. Stack never imports Cordis or
+executes its CLI. Export scheduling remains the operator's responsibility.
+
+One background observer reads a regular, non-symlink `snapshot.json`, capped at
+2 MiB, and validates its bundled version 1 JSON Schema before replacing the
+cache. Unexpected fields, duplicate JSON keys/identities, nonfinite values,
+invalid count markers, oversized or unsafe sources are rejected. File work has a
+deadline; a timed-out read cannot create an unbounded queue of reader threads.
+The schema matches Cordis's `dashboard-snapshot` contract. Limits are 50 runs;
+per run, 128 tasks, 64 attempts, 64 failures, 128 gates, 80 events, 100 evidence
+entries and 64 tool calls. Truncation flags and omitted-item counts are visible.
+
+Freshness uses the export's `generated_at`, independently of gateway freshness
+and file modification time. A failed source read preserves the last valid
+snapshot as historical; an old valid export is explicitly stale. Initial states
+distinguish disabled, missing, unavailable and invalid exports. Per-run busy or
+invalid observations carry no invented stages, revisions or measurements. The
+shared Pause/Update controls apply to browser observations of both systems.
+
+Read-only endpoints, protected by the same LocalOnly/CSP/no-store rules:
+
+| Route | Response |
+| --- | --- |
+| `GET /api/cordis` | Configured/available/stale state, observation and export times, stable error code, last validated snapshot |
+| `GET /api/cordis/runs/{run_id}` | A cached run's sanitized metadata |
+| `GET /api/cordis/runs/{run_id}/evidence/{key}` | A cached evidence registration: opaque reference, kind, SHA-256, byte size and verification/availability state |
+
+Unknown IDs/keys return 404. Viewers cannot choose source paths or network
+destinations. These routes never dispatch, approve, publish, retrieve raw files,
+or trigger a source refresh. Evidence links open their metadata in the panel;
+`registration_only` means the digest is registered and does not assert artifact
+bytes were rechecked. Use the local Cordis workflow for artifact contents.
+All catalog and orchestration strings are rendered as text. Absolute source paths, credentials,
+prompts, arguments, scientific payloads, raw provider output, freeform event
+details and captured command output are excluded from the export contract.
 
 ## Validation
 

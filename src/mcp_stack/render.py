@@ -147,6 +147,17 @@ def compose_config(config: StackConfig) -> dict[str, Any]:
             "healthcheck": probe("http://127.0.0.1:8080/health"),
             "pull_policy": "never",
         }
+        if dashboard.cordis_snapshot_dir is not None:
+            dashboard_env["CORDIS_SNAPSHOT_DIR"] = "/app/cordis"
+            services["dashboard"]["volumes"].append(
+                {
+                    "type": "bind",
+                    "source": dashboard.cordis_snapshot_dir,
+                    "target": "/app/cordis",
+                    "read_only": True,
+                    "bind": {"create_host_path": False},
+                }
+            )
     # Exactly one builder, including deployments with only external downstreams.
     for service in services.values():
         if service["image"] == common["image"]:

@@ -34,6 +34,9 @@ Open **[the local monitor](http://127.0.0.1:8766)** after `make up`. It shows ga
 readiness, server/circuit states, a searchable native tool catalog and live metrics.
 Light/dark themes, request/response schema modals, throughput/latency/error charts
 and per-server performance indicators are included.
+An optional sanitized Cordis export adds run selection, task dependencies, agent
+attempts, failure routing, gates, observed usage and evidence metadata links to the
+same panel. Configure `dashboard.cordis_snapshot_dir` as described in the dashboard docs.
 The dashboard is read-only; disabled library manifests appear as pending integrations.
 See [Dashboard](docs/dashboard.md) for configuration, security and signal semantics.
 

@@ -195,6 +195,7 @@ async function refresh() {
   if (busy) return;
   busy = true; $("refresh").disabled = true;
   clearTimeout(timer);
+  const cordisUpdate = refreshCordis();
   try {
     const response = await fetch("/api/overview", {cache: "no-store", signal: AbortSignal.timeout(5000)});
     if (!response.ok) throw new Error("Observation unavailable");
@@ -204,6 +205,7 @@ async function refresh() {
     if (data) render();
     else { $("notice").hidden = false; text("notice", "Não foi possível conectar ao painel. Uma nova tentativa será feita automaticamente."); text("live", "Desconectado", "live bad"); }
   } finally {
+    await cordisUpdate;
     busy = false; $("refresh").disabled = false;
     if (!paused) timer = setTimeout(refresh, (data?.poll_seconds || 5) * 1000);
   }

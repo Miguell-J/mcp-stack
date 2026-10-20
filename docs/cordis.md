@@ -1,7 +1,7 @@
 # Cordis consumer integration
 
 Cordis is the provider-neutral orchestration layer in the sibling checkout
-`codex-orchestrator`. Stack composes the deployment and scientific adapters;
+`cordis`. Stack composes the deployment and scientific adapters;
 the pinned MCP One owns native transport, registry, routing, circuits and telemetry.
 Cordis does not duplicate these services or import scientific domain implementations.
 

@@ -95,6 +95,26 @@
           "minimum": 0.1,
           "title": "Timeout Seconds",
           "type": "number"
+        },
+        "cordis_snapshot_dir": {
+          "anyOf": [
+            {
+              "maxLength": 1024,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cordis Snapshot Dir"
+        },
+        "cordis_stale_seconds": {
+          "default": 60,
+          "maximum": 3600,
+          "minimum": 5,
+          "title": "Cordis Stale Seconds",
+          "type": "number"
         }
       },
       "title": "Dashboard",

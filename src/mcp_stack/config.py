@@ -107,6 +107,19 @@ class Dashboard(ConfigModel):
     port: int = Field(default=8766, ge=1024, le=65535)
     poll_seconds: float = Field(default=5, ge=2, le=60)
     timeout_seconds: float = Field(default=3, ge=0.1, le=15)
+    cordis_snapshot_dir: str | None = Field(default=None, max_length=1024)
+    cordis_stale_seconds: float = Field(default=60, ge=5, le=3600)
+
+    @field_validator("cordis_snapshot_dir")
+    @classmethod
+    def snapshot_directory(cls, value: str | None) -> str | None:
+        if value is not None and (
+            not Path(value).is_absolute()
+            or ".." in Path(value).parts
+            or any(ord(char) < 32 or char == "$" for char in value)
+        ):
+            raise ValueError("Cordis export directory must be an absolute literal path")
+        return value
 
     @property
     def url(self) -> str:

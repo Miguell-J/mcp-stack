@@ -8,6 +8,7 @@
   <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
   <script src="/assets/theme.js"></script>
   <link rel="stylesheet" href="/assets/style.css">
+  <script src="/assets/cordis.js" defer></script>
   <script src="/assets/app.js" defer></script>
 </head>
 <body>
@@ -18,6 +19,7 @@
       <a href="#overview" class="nav-link active"><span aria-hidden="true">◫</span> Visão geral</a>
       <a href="#servers" class="nav-link"><span aria-hidden="true">▤</span> Servidores <b id="nav-count">—</b></a>
       <a href="#catalog" class="nav-link"><span aria-hidden="true">⌘</span> Catálogo MCP</a>
+      <a href="#cordis" class="nav-link"><span aria-hidden="true">◇</span> Cordis</a>
       <a href="#telemetry" class="nav-link"><span aria-hidden="true">⌁</span> Telemetria</a>
     </nav>
     <div class="sidebar-note"><span class="dot"></span> Ambiente local<p>Observação de infraestrutura.<br>Execução via MCP nativo.</p></div>
@@ -57,6 +59,23 @@
       <section id="performance" class="performance-grid" aria-label="Gráficos de desempenho">
         <article class="panel performance-panel"><div class="panel-heading"><div><h2>Latência das chamadas</h2><p>Média das chamadas concluídas entre coletas</p></div><span class="quiet-tag">milissegundos</span></div><div class="chart-stat"><strong id="interval-latency">—</strong><span>ms / chamada</span><span class="chart-legend">p95 do intervalo: <b id="interval-p95">—</b></span></div><div class="chart-wrap"><svg id="latency-chart" role="img" aria-label="Histórico da latência média em milissegundos"></svg><div id="latency-chart-empty" class="chart-empty">Sem novas chamadas neste histórico.</div></div><div class="chart-axis"><span id="latency-chart-start">—</span><span id="latency-chart-end">Agora</span></div></article>
         <article class="panel performance-panel"><div class="panel-heading"><div><h2>Chamadas sem sucesso</h2><p>Erros, cancelamentos e rejeições por intervalo</p></div><span class="quiet-tag">percentual</span></div><div class="chart-stat"><strong id="error-rate-value">—</strong><span>% das chamadas</span></div><div class="chart-wrap"><svg id="errors-chart" role="img" aria-label="Histórico da porcentagem de chamadas sem sucesso"></svg><div id="errors-chart-empty" class="chart-empty">Sem novas chamadas neste histórico.</div></div><div class="chart-axis"><span id="errors-chart-start">—</span><span id="errors-chart-end">Agora</span></div></article>
+      </section>
+      <section id="cordis" class="panel cordis-panel" aria-labelledby="cordis-title">
+        <div class="panel-heading"><div><h2 id="cordis-title">Orquestração Cordis</h2><p>Runs, dependências e evidências · somente leitura</p></div><span id="cordis-state" class="badge muted">Aguardando</span></div>
+        <p id="cordis-notice" class="cordis-notice" role="status">Consultando exportação de metadados…</p>
+        <div class="cordis-toolbar"><label for="cordis-run">Run</label><select id="cordis-run" aria-label="Selecionar run Cordis" disabled><option>Nenhum run observado</option></select><span id="cordis-time" class="summary-note">Sem exportação</span></div>
+        <div id="cordis-content" hidden>
+          <div id="cordis-summary" class="cordis-summary"></div>
+          <p id="cordis-run-notice" class="cordis-notice" role="status" hidden></p>
+          <div class="cordis-grid"><section aria-labelledby="cordis-graph-title"><h3 id="cordis-graph-title">Grafo de tarefas</h3><p class="cordis-help">Cada tarefa lista suas dependências. Selecione para inspecionar o contrato.</p><div id="cordis-graph" class="cordis-graph"></div></section><section aria-labelledby="cordis-detail-title"><h3 id="cordis-detail-title">Detalhes da tarefa</h3><div id="cordis-task-detail" class="cordis-detail">Selecione uma tarefa.</div></section></div>
+          <section class="cordis-section"><h3>Agentes e tentativas</h3><div id="cordis-attempts" class="table-scroll"></div></section>
+          <section class="cordis-section"><h3>Falhas e encaminhamento</h3><div id="cordis-failures" class="table-scroll"></div></section>
+          <section class="cordis-section"><h3>Gates e revisões</h3><div id="cordis-gates" class="table-scroll"></div></section>
+          <section class="cordis-section"><h3>Chamadas de ferramentas</h3><p class="cordis-help">Recibos de chamadas admitidas; resultado incerto e duração desconhecida são explícitos.</p><div id="cordis-calls" class="table-scroll"></div></section>
+          <section class="cordis-section"><h3>Histórico auditado</h3><div id="cordis-history" class="table-scroll"></div></section>
+          <section class="cordis-section"><h3>Evidências registradas</h3><p class="cordis-help">Links mostram referência, digest e tamanho. Conteúdo dos arquivos permanece no Cordis local.</p><div id="cordis-evidence"></div><pre id="cordis-evidence-detail" class="cordis-detail" tabindex="0" hidden></pre></section>
+        </div>
+        <div class="panel-foot">A exportação é independente do gateway. Aprovações, execução e publicação são feitas pelo operador no Cordis.</div>
       </section>
       <section id="servers" class="panel servers-panel">
         <div class="panel-heading"><div><h2>Servidores <span id="server-count" class="count">—</span></h2><p>Inventário dos manifestos e estado observado pelo gateway</p></div><span class="quiet-tag">Config as code</span></div>

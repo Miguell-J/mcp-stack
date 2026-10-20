@@ -14,6 +14,7 @@ from starlette.routing import Route
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mcp_stack.config import StackConfig, load_config
+from services.dashboard.cordis import CordisObserver
 from services.dashboard.monitor import ContractView, Monitor
 
 STATIC = Path(__file__).parent / "static"
@@ -60,30 +61,66 @@ class LocalOnly:
         await self.app(scope, receive, secured)
 
 
-def create_app(config: StackConfig | None = None, monitor: Monitor | None = None) -> Starlette:
+def create_app(
+    config: StackConfig | None = None,
+    monitor: Monitor | None = None,
+    cordis: CordisObserver | None = None,
+) -> Starlette:
     config = config or load_config(Path(os.getenv("STACK_CONFIG", "config/stack.yaml")))
     observer = monitor or Monitor(config)
+    orchestrations = cordis or CordisObserver(config.dashboard)
     task: asyncio.Task[None] | None = None
+    cordis_task: asyncio.Task[None] | None = None
 
     @asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
-        nonlocal task
+        nonlocal task, cordis_task
         task = asyncio.create_task(observer.run(), name="dashboard-observer")
+        cordis_task = asyncio.create_task(orchestrations.run(), name="dashboard-cordis-observer")
         try:
             yield
         finally:
             task.cancel()
+            cordis_task.cancel()
             try:
                 with suppress(asyncio.CancelledError):
                     await task
+                with suppress(asyncio.CancelledError):
+                    await cordis_task
             finally:
+                await orchestrations.close()
                 await observer.close()
 
     async def overview(request: Request) -> Response:
         return JSONResponse(observer.overview().model_dump(mode="json"))
 
+    async def cordis_overview(request: Request) -> Response:
+        return JSONResponse(orchestrations.overview())
+
+    async def cordis_run(request: Request) -> Response:
+        run = orchestrations.find_run(request.path_params["run_id"])
+        if run is None:
+            return JSONResponse({"error": "RUN_NOT_FOUND"}, status_code=404)
+        return JSONResponse(run)
+
+    async def cordis_evidence(request: Request) -> Response:
+        run = orchestrations.find_run(request.path_params["run_id"])
+        evidence = (
+            next(
+                (item for item in run["evidence"] if item["key"] == request.path_params["key"]),
+                None,
+            )
+            if run
+            else None
+        )
+        if evidence is None:
+            return JSONResponse({"error": "EVIDENCE_NOT_FOUND"}, status_code=404)
+        return JSONResponse(evidence)
+
     async def health(request: Request) -> Response:
         alive = task is not None and not task.done()
+        if orchestrations.directory is not None:
+            alive = alive and cordis_task is not None and not cordis_task.done()
         return JSONResponse({"alive": alive}, status_code=200 if alive else 503)
 
     async def contract(request: Request) -> Response:
@@ -102,7 +139,7 @@ def create_app(config: StackConfig | None = None, monitor: Monitor | None = None
 
     async def asset(request: Request) -> Response:
         name = request.path_params["name"]
-        if name not in {"app.js", "theme.js", "style.css", "mark.svg"}:
+        if name not in {"app.js", "cordis.js", "theme.js", "style.css", "mark.svg"}:
             return Response(status_code=404)
         return FileResponse(STATIC / name)
 
@@ -111,6 +148,9 @@ def create_app(config: StackConfig | None = None, monitor: Monitor | None = None
             Route("/", index),
             Route("/health", health),
             Route("/api/overview", overview),
+            Route("/api/cordis", cordis_overview),
+            Route("/api/cordis/runs/{run_id}", cordis_run),
+            Route("/api/cordis/runs/{run_id}/evidence/{key}", cordis_evidence),
             Route("/api/contracts/{name}", contract),
             Route("/assets/{name}", asset),
         ],
